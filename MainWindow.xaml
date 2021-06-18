@@ -1,0 +1,29 @@
+﻿<Window x:Class="navsharp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        xmlns:local="clr-namespace:navsharp"
+        mc:Ignorable="d"
+        WindowState="Maximized"
+        Loaded="Window_Loaded"
+        Title="MainWindow" Height="824" Width="1536">
+    <Grid>
+        <TabControl>
+            <TabItem Header=" map">
+                <Grid>
+                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" Margin="0,34,0,-1"/>
+                    <Button x:Name="button_b_minus" Content="b -" Click="button_b_minus_Click" Width="75" Margin="0,-4,1449,733" RenderTransformOrigin="0.493,0.036"/>
+                    <Button x:Name="button_b_plus" Content="b +" Click="button_b_plus_Click" HorizontalAlignment="Left" Margin="75,-4,0,733"  Width="75"/>
+                    <Button x:Name="button_a_minus" Click="button_a_minus_Click" Content="a -"  Width="75" Margin="192,-4,1257,733"/>
+                    <Button x:Name="button_a_plus" Click="button_a_plus_Click" Content="a +" HorizontalAlignment="Left" Margin="267,-4,0,0" VerticalAlignment="Top" Width="75" Height="38"/>
+
+                </Grid>
+            </TabItem>
+
+
+        </TabControl>
+
+    </Grid>
+</Window>
