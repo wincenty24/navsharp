@@ -13,7 +13,7 @@
         <TabControl>
             <TabItem Header=" map">
                 <Grid>
-                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" Margin="0,34,0,-1"/>
+                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" Margin="0,34,212,-0.6"/>
                     <Button x:Name="button_b_minus" Content="b -" Click="button_b_minus_Click" Width="75" Margin="0,-4,1449,733" RenderTransformOrigin="0.493,0.036"/>
                     <Button x:Name="button_b_plus" Content="b +" Click="button_b_plus_Click" HorizontalAlignment="Left" Margin="75,-4,0,733"  Width="75"/>
                     <Button x:Name="button_a_minus" Click="button_a_minus_Click" Content="a -"  Width="75" Margin="192,-4,1257,733"/>

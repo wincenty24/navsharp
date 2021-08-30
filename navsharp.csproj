@@ -61,8 +61,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Lines.cs" />
     <Compile Include="Slayer.cs" />
     <Compile Include="Templates.cs" />
+    <Compile Include="Values.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -8,7 +8,7 @@ namespace navsharp
 {
     class Templates
     {
-        public double validate_points_and_template(ref double[] points)
+        public int validate_points_and_template(ref double[] points)
         {
 
             double a1 = points[0];
