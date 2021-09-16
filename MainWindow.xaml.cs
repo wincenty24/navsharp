@@ -102,9 +102,10 @@ namespace navsharp
         }
         public void assign_start_point_A()
         {
-            //51.141572, 17.224826
-            double bs1 = Math_Formulas.degree_to_radian(17.376101);
-            double as1 = Math_Formulas.degree_to_radian(51.238278);
+            //51,230797, 17,361655
+            double as1 = Math_Formulas.degree_to_radian(51.225702);
+            double bs1 = Math_Formulas.degree_to_radian(17.372333);
+            //51,225702, 17,372333
             //double as1 = math.degree_to_radian(51.141572);
             //double bs1 = math.degre e_to_radian(17.224826);
             slayer.main_points[0] = as1;
@@ -112,9 +113,9 @@ namespace navsharp
         }
         public void assign_start_point_B()
         {
-            //51.141479, 17.223516
-            double bs2 = Math_Formulas.degree_to_radian(17.379631);
-            double as2 = Math_Formulas.degree_to_radian(51.240896);
+            //51,227277, 17,372381
+            double as2 = Math_Formulas.degree_to_radian(51.227277);
+            double bs2 = Math_Formulas.degree_to_radian(17.372333);
             //double bs2 = math.degree_to_radian(17.223516);
             //double as2 = math.degree_to_radian(51.141479);
 
@@ -124,8 +125,8 @@ namespace navsharp
 
             slayer.validation(slayer.current_point);
 
-            main_map.Center = new Location(51.239736, 17.377578);
-            main_map.ZoomLevel = 17;
+            main_map.Center = new Location(51.230415, 17.362015);
+            main_map.ZoomLevel = 19;
             
             /*
             //start validate

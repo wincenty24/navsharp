@@ -53,13 +53,30 @@ namespace navsharp
             double a2 = main_points[2];
             double b2 = main_points[3];
             double delta = b2 - b1;
+            Debug.WriteLine($"data {delta}");
             double val1 = Math.Tan(a1) / Math.Tan(a2);
             double val2 = (1 / (val1 * Math.Sin(delta))) - (Math.Cos(delta) / Math.Sin(delta));
             double result = (Math.PI / 2) - Math.Atan(val2);
   
             return result;
         }
-         public static double[] shift_up(double beta,double a)
+        public static double calculate_decreasing_b2(double[] main_points)
+        {
+            double a1 = main_points[0];
+            double b1 = main_points[1];
+            double a2 = main_points[2];
+            double b2 = main_points[3];
+
+            double delta = Math.Abs(b2 - b1);
+            double f = Math.Sin(delta);
+            double e = Math.Cos(delta);
+            double val1 = Math.Tan(a1) / Math.Tan(a2);
+            double val2 = (val1 - e) / f;
+            double result = (Math.PI / 2) - Math.Atan(val2);
+
+            return result;
+        }
+        public static double[] shift_up(double beta,double a)
         {
             double alpha = (Math.PI / 2) - beta;
             double c = Math.Asin(Math.Sin(a) / Math.Sin(alpha));
@@ -93,20 +110,21 @@ namespace navsharp
         {
             return Math.Atan2(Math.Atan(b), Math.Cos(angle));
         }
-        public static double[] calculate_shift_down(double a, double b, double shift, double alpha, double beta, double delta)
+        public static double[] calculate_shift_for_growing_fun_down(double a, double b, double shift, double alpha, double beta, double delta)
         {
             double c = calculate_c_using_a_and_b(a, b + delta);
             double b1 = Math.Atan(Math.Tan(beta) * Math.Sin(shift));//double b1 = Math.Acos(Math.Cos(c1) / Math.Cos(shift));
             double c2 = c - b1;
             double a2 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+
+
             double a3 = Math.Asin(Math.Tan(shift) / Math.Tan(beta));
-            //double a3 = Math.Asin(Math.Sin(shift) / Math.Sin(beta));
             double c3 = c + a3;
             double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(c3)) - delta;
             double[] returner = {a2, b2}; 
             return returner;
         }
-        public static double[] calculate_shift_up(double a, double b, double shift, double alpha, double beta, double delta)
+        public static double[] calculate_shift_for_growing_fun_up(double a, double b, double shift, double alpha, double beta, double delta)
         {
             double b1 = calculate_b_using_a_and_alpha(shift, beta);
             double c = calculate_c_using_a_and_b(a, b + delta);
@@ -117,13 +135,35 @@ namespace navsharp
             double[] returner = { a2 + c2, b2 };
             return returner;
         }
+        public static double[] calculate_shift_for_decreasing_fun_down(double a, double b, double shift, double alpha, double beta, double b_length)
+        {
+            double b1 = Math.Atan(Math.Tan(beta) * Math.Sin(shift));
+            double c = calculate_c_using_a_and_b(a, b_length - b) ;
+            double c1 = c - b1;
+            double a2 = Math.Asin(Math.Sin(alpha) * Math.Sin(c1));
+            double a3 = Math.Asin(Math.Tan(shift) / Math.Tan(beta));
+            double c3 = c + a3;
+            double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(c3));
+            double[] returner = { a2, b_length - (b2) };
+            return returner;
+        }
+        public static double[] calculate_shift_for_decreasing_fun_up(double a, double b, double shift, double alpha, double beta, double b_length)
+        {
+            double b1 = calculate_b_using_a_and_alpha(shift, beta);
+            double c = calculate_c_using_a_and_b(a, b_length - b);
+            double c1 = c - b1;
+            double c2 = calculate_c_using_a_and_b(shift, b1);
+            double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(c1));
+            double a2 = Math.Asin(Math.Sin(alpha) * Math.Sin(c1));
+            double[] returner = { a2 + c2, b_length - (b2) };
+            return returner;
+        }
         public static double[] real_shift_growing(double curr_loc_a, double curr_loc_b, double alpha, double beta, double delta)
         {
             double a = calculate_a(alpha, delta + curr_loc_b);
             double return_a = curr_loc_a, return_b = curr_loc_b, return_c = 0, return_shift = 0;
             if (curr_loc_a > a)
             {
-
                 double a1 = curr_loc_a - a;
                 a1 = Math.Abs(a1);
                 double mojeb = Math.Atan(Math.Cos(beta) * Math.Tan(a1));
@@ -136,7 +176,6 @@ namespace navsharp
                 return_shift = Math.Asin(Math.Sin(beta)*Math.Sin(a1));
                 double radian_distance = distance_radian(curr_loc_a, mojenowe_a, Math.Abs(curr_loc_b - mojenowe_b));
                 return_c = mojec;
-               // Debug.WriteLine($"diff {(return_shift - radian_distance)* 637100000 }");
             }
 
             else if (curr_loc_a < a)
@@ -170,6 +209,75 @@ namespace navsharp
             
             return points;
         }
+        public static double[] calculate_shift_for_vertical(double curr_loc_a, double curr_loc_b, double reference_b, double d, double r)
+        {
+            //double dis = curr_loc_b - reference_b;//distance_radian(curr_loc_a, curr_loc_a, curr_loc_b - reference_b);
+            double val4 = Math.Pow(Math.Sin(d/(2*r)), 2);
+            double val5 = Math.Pow(Math.Cos(curr_loc_a), 2);
+            double val6 = Math.Sqrt(val4 / val5);
+            double val7 = 2 * Math.Asin(val6);
+            double val8 = val7 + reference_b;
+            double val9 = reference_b - val7;
+            double[] returner = { val8, val9 };
+            return returner;
+        }
+
+        public static double real_shift_vertical(double curr_loc_a, double curr_loc_b, double reference_b, double r)
+        {
+            double val1 = Math.Pow(Math.Cos(curr_loc_a), 2);
+            double val2 = Math.Pow(Math.Sin((curr_loc_b - reference_b) / 2), 2);
+            double val3 = Math.Sqrt(val1 * val2);
+            double e = 2 * r * Math.Asin(val3);
+            return e;
+        }
+
+        public static double calculate_shift_for_perpendicular(double curr_loc_a, double curr_loc_b, double reference_a, double d, double r)
+        {
+            double val1 =Math.Sin(d/(2*r));
+ 
+            double e = 2 * Math.Asin(val1);
+            return curr_loc_a - e;
+        }
+        public static double[] real_shift_decreasing(double curr_loc_a, double curr_loc_b, double alpha, double beta, double b_length)
+        {
+           
+            
+            double a = Math.Atan(Math.Tan(alpha) * Math.Sin(b_length - curr_loc_b));
+            double b = calculate_b_using_a_and_alpha(curr_loc_a, alpha);
+            double return_a = curr_loc_a, return_b = curr_loc_b, return_c = 0, return_shift = 0;
+            if (curr_loc_a > a)
+            {
+                double a2 = curr_loc_a - a;
+                double a1 = Math.Abs(b_length - b - curr_loc_b);
+                double c1 = Math.Atan(Math.Cos(beta) * Math.Tan(a2));
+                double c = calculate_c_using_a_and_b(a, b_length -curr_loc_b);
+                double c2 = c + c1 ;
+                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
+                return_a = mojenowe_a;
+                return_b = b_length - mojenowe_b;
+                return_shift = Math.Asin(Math.Sin(beta) * Math.Sin(a2));
+            }
+
+            else if (curr_loc_a < a)
+            {
+
+                double c1 = b_length - b - curr_loc_b;
+                double b1 = calculate_b_using_c_and_alpha(c1, alpha);
+                double c = calculate_c_using_a_and_b(curr_loc_a, b);
+                double c2 = b1 + c;
+                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
+                return_a = mojenowe_a;
+                return_b = b_length - mojenowe_b;
+                return_shift = Math.Asin(Math.Tan(b1) / Math.Tan(beta));
+            }
+
+
+            double[] points = { return_a, return_b, return_c, return_shift };
+
+            return points;
+        }
 
         public static double real_shift_down(double a1, double b1, double alpha)
         {
@@ -178,6 +286,10 @@ namespace navsharp
             double c = a3 - a1;
             double a = calculate_a_using_c_and_alpha(c ,beta);
             return a;
+        }
+        public static double calculate_c_using_a_alpha(double a, double alpha)
+        {
+            return Math.Asin(Math.Sin(a)/ Math.Asin(alpha));
         }
         public static double calculate_alpha(double a, double b)
         {
@@ -216,7 +328,7 @@ namespace navsharp
             return Math.Asin(Math.Sin(beta) * Math.Sin(c));
         }
 
-        public static double calculate_b_using_c_and_alpha(double c, double alpha)//3
+        public static double calculate_b_using_c_and_alpha(double c, double alpha)//3 +1
         {
             return Math.Atan(Math.Cos(alpha) * Math.Tan(c));
         }
