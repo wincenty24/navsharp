@@ -115,6 +115,16 @@ namespace navsharp
                  * | a1
                  */
             }
+            else if ( (a1 == a2) && (b1 > b2))
+            {
+
+                points[1] = b2;
+                points[3] = b1;
+                /*
+                 * b1---------------------b2
+                 */
+
+            }
         }
         public static int validate_template(double[] points)
         {

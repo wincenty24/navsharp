@@ -102,9 +102,13 @@ namespace navsharp
         }
         public void assign_start_point_A()
         {
-            //51,230797, 17,361655
-            double as1 = Math_Formulas.degree_to_radian(51.225702);
-            double bs1 = Math_Formulas.degree_to_radian(17.372333);
+            // -- 51.203977, 17.312593
+            // || 51.208477 17.312763
+            // / 51.238247, 17.375997
+            // \ 51.230939, 17.361992
+            double as1 = Math_Formulas.degree_to_radian(51.230939);
+            double bs1 = Math_Formulas.degree_to_radian(17.361992);
+
             //51,225702, 17,372333
             //double as1 = math.degree_to_radian(51.141572);
             //double bs1 = math.degre e_to_radian(17.224826);
@@ -113,9 +117,12 @@ namespace navsharp
         }
         public void assign_start_point_B()
         {
-            //51,227277, 17,372381
-            double as2 = Math_Formulas.degree_to_radian(51.227277);
-            double bs2 = Math_Formulas.degree_to_radian(17.372333);
+            // -- 51.203977, 17.312763
+            // || 51.205802 17.312763
+            // / 51.240987, 17.379715
+            // \ 51.230131, 17.362590
+            double as2 = Math_Formulas.degree_to_radian(51.230131);
+            double bs2 = Math_Formulas.degree_to_radian(17.362590);
             //double bs2 = math.degree_to_radian(17.223516);
             //double as2 = math.degree_to_radian(51.141479);
 

@@ -218,7 +218,16 @@ namespace navsharp
             double val7 = 2 * Math.Asin(val6);
             double val8 = val7 + reference_b;
             double val9 = reference_b - val7;
-            double[] returner = { val8, val9 };
+            double[] returner = { val8, val9, val7 };
+            return returner;
+        }
+        public static double[] calculate_shift_for_perpendicular(double curr_loc_a, double curr_loc_b, double reference_a, double d, double r)
+        {
+            //double dis = curr_loc_b - reference_b;//distance_radian(curr_loc_a, curr_loc_a, curr_loc_b - reference_b);
+            double val1 = Math.Sin(d / (2 * r));
+            double val2 = 2*Math.Asin(val1);
+            double val3 = val2 + curr_loc_a;
+            double[] returner = { val3, val2 };
             return returner;
         }
 
@@ -230,13 +239,12 @@ namespace navsharp
             double e = 2 * r * Math.Asin(val3);
             return e;
         }
-
-        public static double calculate_shift_for_perpendicular(double curr_loc_a, double curr_loc_b, double reference_a, double d, double r)
+        public static double real_shift_perpendicular(double curr_loc_a, double curr_loc_b, double reference_a, double r)
         {
-            double val1 =Math.Sin(d/(2*r));
- 
-            double e = 2 * Math.Asin(val1);
-            return curr_loc_a - e;
+            double val1 = Math.Sin((reference_a - curr_loc_a)/2);
+            double val2 = Math.Asin(val1);
+            double val3 = 2 * r * val2;
+            return val3;
         }
         public static double[] real_shift_decreasing(double curr_loc_a, double curr_loc_b, double alpha, double beta, double b_length)
         {
@@ -375,7 +383,7 @@ namespace navsharp
         {
             double half_shift = my_distance / 2;
             double rest = curr_diss % my_distance;
-            if (rest > half_shift)
+            if (rest >= half_shift)
             {
                 double diss_to_line = rest - my_distance ;
                 return diss_to_line;
@@ -387,6 +395,7 @@ namespace navsharp
 
             return 0;
         }
+
 
 
     }
