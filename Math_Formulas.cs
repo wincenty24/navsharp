@@ -166,16 +166,18 @@ namespace navsharp
             {
                 double a1 = curr_loc_a - a;
                 a1 = Math.Abs(a1);
-                double mojeb = Math.Atan(Math.Cos(beta) * Math.Tan(a1));
+                double b2 = Math.Atan(Math.Cos(beta) * Math.Tan(a1));
                 double c = Math.Acos(Math.Cos(a) * Math.Cos(curr_loc_b + delta));
-                double mojec = c + mojeb;
-                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(mojec));
-                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(mojec)) - delta;
-                return_a = mojenowe_a;
-                return_b = mojenowe_b;
-                return_shift = Math.Asin(Math.Sin(beta)*Math.Sin(a1));
-                double radian_distance = distance_radian(curr_loc_a, mojenowe_a, Math.Abs(curr_loc_b - mojenowe_b));
-                return_c = mojec;
+                double c2 = c + b2;
+                double a3 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double b3 = Math.Atan(Math.Cos(alpha) * Math.Tan(c2)) - delta;
+                return_a = a3;
+                return_b = b3;
+             
+                double radian_distance = distance_radian(curr_loc_a, a3, Math.Abs(curr_loc_b - b3));
+                //return_shift = Math.Asin(Math.Sin(beta) * Math.Sin(a1));
+                return_shift = radian_distance;
+                return_c = c2;
             }
 
             else if (curr_loc_a < a)
@@ -184,21 +186,21 @@ namespace navsharp
                 double bb1 = calculate_b_using_a_and_alpha(curr_loc_a, alpha) - delta;
                 double b1 = bb1 - curr_loc_b;
                 b1 = Math.Abs(b1);
-                double mojeb = Math.Atan(Math.Cos(alpha) * Math.Tan(b1));
-                double shift = Math.Asin(Math.Tan(mojeb) / Math.Tan(beta));
+                double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(b1));
+                double shift = Math.Asin(Math.Tan(b2) / Math.Tan(beta));
                 double c = Math.Acos(Math.Cos(curr_loc_a) * Math.Cos(delta + bb1));
-                double mojec = c + mojeb;
-                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(mojec));
-                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(mojec)) - delta;
+                double c2 = c + b2;
+                double a3 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double b3 = Math.Atan(Math.Cos(alpha) * Math.Tan(c2)) - delta;
                 
-                double radian_distance = distance_radian(curr_loc_a, mojenowe_a, Math.Abs(curr_loc_b - mojenowe_b));
+                double radian_distance = distance_radian(curr_loc_a, a3, Math.Abs(curr_loc_b - b3));
              
-                return_a = mojenowe_a;
-                return_b = mojenowe_b;
+                return_a = a3;
+                return_b = b3;
                 //double zdupya = Math.Acos(Math.Cos(chujowe_a) * Math.Cos(chuhowe_b));
               
-                return_shift = shift;
-                return_c = mojec;
+                return_shift = radian_distance;
+                return_c = c2;
             }
             else if (curr_loc_a == a)
             {
@@ -256,14 +258,14 @@ namespace navsharp
             if (curr_loc_a > a)
             {
                 double a2 = curr_loc_a - a;
-                double a1 = Math.Abs(b_length - b - curr_loc_b);
                 double c1 = Math.Atan(Math.Cos(beta) * Math.Tan(a2));
                 double c = calculate_c_using_a_and_b(a, b_length -curr_loc_b);
                 double c2 = c + c1 ;
-                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
-                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
-                return_a = mojenowe_a;
-                return_b = b_length - mojenowe_b;
+                double a3 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double b3 = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
+                return_a = a3;
+                return_b = b_length - b3;
+                double radian_distance = distance_radian(a3, curr_loc_a, Math.Abs(curr_loc_b - b3));
                 return_shift = Math.Asin(Math.Sin(beta) * Math.Sin(a2));
             }
 
@@ -274,10 +276,12 @@ namespace navsharp
                 double b1 = calculate_b_using_c_and_alpha(c1, alpha);
                 double c = calculate_c_using_a_and_b(curr_loc_a, b);
                 double c2 = b1 + c;
-                double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
-                double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
-                return_a = mojenowe_a;
-                return_b = b_length - mojenowe_b;
+                double a3 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
+                double b3 = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
+                return_a = a3;
+                return_b = b_length - b3;
+                Debug.WriteLine("DUPA");
+                double radian_distance = distance_radian(a3, curr_loc_a, curr_loc_b - b3);
                 return_shift = Math.Asin(Math.Tan(b1) / Math.Tan(beta));
             }
 
@@ -379,6 +383,10 @@ namespace navsharp
             return length / radius;
         }
 
+        public static int which_line(double real_shift, double width)
+        {
+            return (int)Math.Round(real_shift / width, 0, MidpointRounding.AwayFromZero);
+        }
         public static double distance_to_line(double curr_diss, double my_distance)
         {
             double half_shift = my_distance / 2;

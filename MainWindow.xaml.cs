@@ -16,6 +16,7 @@ using System.Diagnostics;
 using Microsoft.Maps.MapControl.WPF;
 using System.Timers;
 using System.Windows.Threading;
+using System.Globalization;
 
 namespace navsharp
 {
@@ -29,35 +30,70 @@ namespace navsharp
         DispatcherTimer timer = new DispatcherTimer();
         MapPolygon polygon = new MapPolygon();
         Pushpin pin = new Pushpin();
+        SerialBoss sb = new SerialBoss();
+        MapPolyline polyline = new MapPolyline();
+        LocationCollection locations;
+        LocationCollection points = new LocationCollection();
         public MainWindow()
         {
             InitializeComponent();
 
-            main_map.Children.Add(pin);
-
-            /*
-            //MapPolygon polygon = new MapPolygon();
-            polygon.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Blue);
-            polygon.Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
-            polygon.StrokeThickness = 5;
-            polygon.Opacity = 0.7;
-            */
-
-
-            //double bs1 = mf.degree_to_radian(17.376002);
-            //double bs2 = mf.degree_to_radian(17.379699);//  # 18
-            //double as1 = mf.degree_to_radian(51.238248);//  # 51
-            //double as2 = mf.degree_to_radian(51.240980);//  # 52
+            
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
             DOIT();
         }
-
+        bool asd = false;
         private void DOIT()
         {
+            if (sb.is_port_available())
+            {
+                double[] val = sb.prepared_data();
+                //Debug.Write($"{Math_Formulas.radian_to_degree(val[2])} {Math_Formulas.radian_to_degree(val[2])}  ");
+                points.Add(new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1])));
+                polyline.Locations = points;
+                main_map.Center = new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1]));
 
+                main_map.Heading = -Math_Formulas.radian_to_degree(val[2]);
+                                //main_map.SetView(new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1])), main_map.ZoomLevel);
+                if (!asd)
+                {
+                    main_map.Children.Add(pin);
+                    polyline.Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
+                    polyline.StrokeThickness = 5;
+                    polyline.Opacity = 0.7;
+                    main_map.Children.Add(polyline);
+                    asd = true;
+                }
+                if (slayer.is_validated)
+                {
+                    double[] dist = slayer.invoke_main_fun();
+                    double l = Math_Formulas.calculate_radian_using_radius_and_length(3.0, Values.earth_radius_m + Values.asl);
+                   // slayer.calculate_angle(dist[0], l, slider2.Value);
+                    Debug.WriteLine($"{dist[0]} {dist[1]}");
+                }
+                Values.current_point[0] = val[0];
+                Values.current_point[1] = val[1];
+            }
+            /*
+         if (sb.is_port_available())
+         {
+             string data = sb.data;
+             string[] splitted_data = data.Split(' ');
+             NumberFormatInfo provider = new NumberFormatInfo();
+             provider.NumberDecimalSeparator = ".";
+             provider.NumberGroupSeparator = ",";
+             double a1 = Convert.ToDouble(splitted_data[0], provider);
+             double b1 = Convert.ToDouble(splitted_data[1], provider);
+             double angl = Convert.ToDouble(splitted_data[2], provider);
+             //double b1 = Convert.ToDouble(splitted_data[1]);
+             //double angle1 = Convert.ToDouble(splitted_data[2]);
+             Debug.WriteLine($"{a1} {b1} {angl}");
+             slayer.draw_route((a1), (b1), (angl));
+         }
+         */
             //slayer.draw_tracking_line(slayer.current_point[0], slayer.current_point[1], main_map);
             //double a = slayer.predictable_a_postions(slayer.current_point[1]);
 
@@ -81,14 +117,15 @@ namespace navsharp
             //Debug.WriteLine($"real_sh {real_sh}");
         }
         
+
         private void button_b_minus_Click(object sender, RoutedEventArgs e)
         {
-            slayer.current_point[1] -= 0.0000007;
+            Values.current_point[1] -= 0.0000007;
         }
 
         private void button_b_plus_Click(object sender, RoutedEventArgs e)
         {
-            slayer.current_point[1] += 0.0000007;
+            Values.current_point[1] += 0.0000007;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -96,9 +133,11 @@ namespace navsharp
             slayer = new Slayer(main_map);
             assign_start_point_A();
             assign_start_point_B();
-            slayer.current_point[0] = slayer.main_points[0];
-            slayer.current_point[1] = slayer.main_points[1];
+            Values.current_point[0] = Values.main_points[0];
+            Values.current_point[1] = Values.main_points[1];
 
+            
+           
         }
         public void assign_start_point_A()
         {
@@ -112,8 +151,8 @@ namespace navsharp
             //51,225702, 17,372333
             //double as1 = math.degree_to_radian(51.141572);
             //double bs1 = math.degre e_to_radian(17.224826);
-            slayer.main_points[0] = as1;
-            slayer.main_points[1] = bs1;
+            Values.main_points[0] = as1;
+            Values.main_points[1] = bs1;
         }
         public void assign_start_point_B()
         {
@@ -123,17 +162,11 @@ namespace navsharp
             // \ 51.230131, 17.362590
             double as2 = Math_Formulas.degree_to_radian(51.230131);
             double bs2 = Math_Formulas.degree_to_radian(17.362590);
-            //double bs2 = math.degree_to_radian(17.223516);
-            //double as2 = math.degree_to_radian(51.141479);
+            Values.main_points[2] = as2;
+            Values.main_points[3] = bs2;
 
-
-            slayer.main_points[2] = as2;
-            slayer.main_points[3] = bs2;
-
-            slayer.validation(slayer.current_point);
-
-            main_map.Center = new Location(51.230415, 17.362015);
-            main_map.ZoomLevel = 19;
+            slayer.validation(Values.current_point);
+            main_map.ZoomLevel = 18;
             
             /*
             //start validate
@@ -152,7 +185,7 @@ namespace navsharp
             */
 
 
-            timer.Interval = TimeSpan.FromMilliseconds(10);
+            timer.Interval = TimeSpan.FromMilliseconds(20);
             timer.Tick += Timer_Tick;
             timer.Start();
 
@@ -161,12 +194,12 @@ namespace navsharp
 
         private void button_a_minus_Click(object sender, RoutedEventArgs e)
         {
-            slayer.current_point[0] -= 0.0000007;
+            Values.current_point[0] -= 0.0000007;
         }
 
         private void button_a_plus_Click(object sender, RoutedEventArgs e)
         {
-            slayer.current_point[0] += 0.0000007;
+            Values.current_point[0] += 0.0000007;
 
             /*
             double a = math.radian_to_degree(current_point[0]);
@@ -199,16 +232,31 @@ namespace navsharp
             Location location = new Location(Convert.ToDouble(val1), Convert.ToDouble(val2));
             //pin.Location = location;
             // The pushpin to add to the map.
-            slayer.current_point[0] = Math_Formulas.degree_to_radian(Convert.ToDouble(val1));
-            slayer.current_point[1] = Math_Formulas.degree_to_radian(Convert.ToDouble(val2));
-            slayer.invoke_main_fun();
+            Values.current_point[0] = Math_Formulas.degree_to_radian(Convert.ToDouble(val1));
+            Values.current_point[1] = Math_Formulas.degree_to_radian(Convert.ToDouble(val2));
+
+            if (slayer.is_validated)
+            {
+              double[] dist = slayer.invoke_main_fun();
+                Debug.WriteLine(dist[0]);
+            }
             // Adds the pushpin to the map.
 
         }
 
         private void main_map_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Debug.WriteLine("click");
+            //Debug.WriteLine("click");
+        }
+
+        private void angle_plus_Click(object sender, RoutedEventArgs e)
+        {
+            
+            string data = $"{Math_Formulas.radian_to_degree(Values.main_points[0])} {Math_Formulas.radian_to_degree(Values.main_points[1])} {Math_Formulas.radian_to_degree(slayer.value_for_rise_fun.beta)} ";
+            data = data.Replace(",", ".");
+            sb.send(data);
+            Debug.WriteLine(data);
+            sb.create_fake_coordinates(Values.current_point[0], Values.current_point[1], slayer.value_for_rise_fun.beta) ;
         }
     }
 }

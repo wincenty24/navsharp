@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace navsharp
 {
-    class Values
+    public static class Values
     {
         //const
         public const double earth_radius_km = 6371.0;
@@ -14,15 +14,17 @@ namespace navsharp
         public const double earth_radius_cm = 637100000;
 
 
-        public double asl = 0;//abve sea level
-        public double shif_m = 3.0;
-        public double line_distance_m = 100;//in meters
-        public double how_many_lines = 20;
+        public static double asl = 0;//abve sea level
+        public static double shif_m = 3.0;
+        public static double line_distance_m = 100;//in meters
+        public static double how_many_lines = 20;
+        public static double object_azimute_degree = 0.0;
 
         //arrays
-        public double[] main_points = new double[4];
-  
-       public enum Function
+        public static double[] main_points = new double[4];
+        public static double[] current_point = new double[2];
+
+        public enum Function
        {
             growing = 0,
             decreasing = 1,

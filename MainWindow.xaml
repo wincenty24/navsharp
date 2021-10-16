@@ -18,9 +18,15 @@
                     <Button x:Name="button_b_plus" Content="b +" Click="button_b_plus_Click" HorizontalAlignment="Left" Margin="75,-4,0,733"  Width="75"/>
                     <Button x:Name="button_a_minus" Click="button_a_minus_Click" Content="a -"  Width="75" Margin="192,-4,1257,733"/>
                     <Button x:Name="button_a_plus" Click="button_a_plus_Click" Content="a +" HorizontalAlignment="Left" Margin="267,-4,0,0" VerticalAlignment="Top" Width="75" Height="38"/>
+                    <Button Content="angle +" x:Name="angle_plus" Width="75" Margin="847,0,602,733" Click="angle_plus_Click"/>
+                    <Button Content="angle -" x:Name="angle_minus"  HorizontalAlignment="Left" Margin="922,0,0,0" VerticalAlignment="Top" Width="75" Height="34"/>
 
+                    <Slider x:Name="slider" Margin="1012,0,217,733" Minimum="-15" Maximum="15" TickPlacement="BottomRight" TickFrequency="1" IsSnapToTickEnabled="True" SmallChange="1" />
+                    <Slider x:Name="slider2" Margin="362,0,737,733"
+                            Minimum="0" Maximum="0.000005" TickPlacement="BottomRight" />
                 </Grid>
             </TabItem>
+
 
 
         </TabControl>
