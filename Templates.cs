@@ -169,6 +169,55 @@ namespace navsharp
             return wynik;
         }
 
+        public static Values.Direction chceck_direction(Values.Function function, double current_degree, double ref_degree)
+        {
+            if (function == Values.Function.growing)
+            {
+                if (current_degree >= Math_Formulas.prepare_degree_for_compass(-ref_degree) || current_degree <= Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
+                {
+                    return Values.Direction.growing;
+                }
+                else if (current_degree < Math_Formulas.prepare_degree_for_compass(-ref_degree) && current_degree > Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
+                {
+                    return Values.Direction.decreasing;
+                }
+            }
+            else if (function == Values.Function.decreasing)
+            {
+                if (current_degree >= Math_Formulas.prepare_degree_for_compass(-Math.PI / 2 - ref_degree) || current_degree <= Math.PI / 2 - ref_degree)
+                {
+                    return Values.Direction.growing;
+                }
+                else if (current_degree < Math_Formulas.prepare_degree_for_compass(-Math.PI / 2 - ref_degree) && current_degree > Math.PI / 2 - ref_degree)
+                {
+                    return Values.Direction.decreasing;
+                }
+            }
+            else if (function == Values.Function.vertical)
+            {
+                if (current_degree >= 1.5*Math.PI || current_degree <= Math.PI / 2)
+                {
+                    return Values.Direction.growing;
 
+                }
+                else if (current_degree < 1.5 * Math.PI && current_degree > Math.PI / 2)
+                {
+                    return Values.Direction.decreasing;
+                }
+            }
+            else if(function == Values.Function.perpendicular) {
+                if (current_degree >= Math.PI)
+                {
+                    return Values.Direction.decreasing;
+                 
+                }
+                else if (current_degree < Math.PI)
+                {
+                    return Values.Direction.growing;
+                }
+            }
+           
+            return 0;
+        }
     }
 }

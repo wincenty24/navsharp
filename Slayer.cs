@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace navsharp
@@ -13,36 +14,35 @@ namespace navsharp
     class Slayer
     {
         DispatcherTimer timer = new DispatcherTimer();
-        
-        
+
 
         Lines main_line;
         //public double[] current_point = new double[2];
         public List<Pushpin> ppoints = new List<Pushpin>();
+
         public Pushpin pin_curloc = new Pushpin();
         public Pushpin pin_loc = new Pushpin();
         public Pushpin pin1 = new Pushpin();
+        public Pushpin pin2 = new Pushpin();
+
 
         public List<Lines> mappolyline = new List<Lines>();
-        public Templates tem = new Templates();
         public bool is_validated = false;
+        MapPolyline poly = new MapPolyline();
 
         //private
         private Map map;
         private bool is_main_line = false;
         private double last_position_b = 0;
         private double last_position_a = 0;
-        private double last_length_c = 0;
         private int last_line_num = -1;
         public Values.Value_For_Rise_Fun value_for_rise_fun;
         private Values.Value_For_Decreasing_Fun value_for_decreasing_fun;
         private Values.Value_For_Vertical_Fun value_for_vertical_fun;
         private Values.Value_For_Perpendicular_Fun value_for_perpendicular_fun;
 
+        Values.Direction direction;
         Values.Function function;
-        double start_angle = 0;
-        double start_a = 0;
-        double start_b = 0;
         public Slayer(Map map)
         {
             this.map = map;
@@ -50,62 +50,68 @@ namespace navsharp
         }
         public double[] invoke_main_fun()
         {
-
             if (function == Values.Function.growing)
             {
-
+                direction = Templates.chceck_direction(function, Values.compass, value_for_rise_fun.beta);
                 double[] real_distance = Math_Formulas.real_shift_growing(Values.current_point[0], Values.current_point[1], value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-
-                var w = is_track_decreasing_or_rising(real_distance[2], last_length_c);
                 double real_distance_m = real_distance[3] * (Values.earth_radius_m + Values.asl);
                 double dist = preapre_distance(real_distance_m);
                 int line = change_line_color(real_distance_m, Values.shif_m);
                 //Debug.WriteLine($"{dist} {real_distance_m}");
-                calculate_target(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], real_distance[0], real_distance[1]);
+                steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
                 add_pin(real_distance[0], real_distance[1], pin_loc, map);
                 add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                double[] ret = { dist, line };
+                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
+                double[] ret = { dist, line, dir};
                 return ret;
 
             }
             else if (function == Values.Function.decreasing)//maleje
             {
+                direction = Templates.chceck_direction(function, Values.compass, value_for_decreasing_fun.beta);
                 double[] real_distance = Math_Formulas.real_shift_decreasing(Values.current_point[0], Values.current_point[1], value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
                 double real_distance_m = real_distance[3] * (Values.earth_radius_m + Values.asl);
                 int line = change_line_color(real_distance_m, Values.shif_m);
                 double dist = preapre_distance(real_distance_m);
-                calculate_target(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], real_distance[0], real_distance[1]);
+                steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
                 add_pin(real_distance[0], real_distance[1], pin_loc, map);
                 add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                Debug.WriteLine($"asd {dist}       {real_distance_m}");
-                double[] ret = { dist, line };
+                //Debug.WriteLine($"asd {dist}       {real_distance_m}");
+                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
+                double[] ret = { dist, line, dir };
                 return ret;
             }
             else if (function == Values.Function.vertical)//pionowe
             {
-                
+                direction = Templates.chceck_direction(function, Values.compass, 0);
                 double dis = Math_Formulas.distance_radian(Values.current_point[0], Values.current_point[0], Values.current_point[1] - value_for_vertical_fun.reference_b);
                 double real_distance = Math_Formulas.real_shift_vertical(Values.current_point[0], Values.current_point[1], value_for_vertical_fun.reference_b, Values.earth_radius_m + Values.asl);
                 double[] b = Math_Formulas.calculate_shift_for_vertical(Values.current_point[0], Values.current_point[1], value_for_vertical_fun.reference_b, dis, Values.earth_radius_m + Values.asl);//sprawdz to
-;                //add_pin(Values.current_point[0], value_for_vertical_fun.reference_b, pin_loc3, map);
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                add_pin(Values.current_point[0], b[0], pin_loc, map);
+                //add_pin(Values.current_point[0], value_for_vertical_fun.reference_b, pin_loc3, map);
                 double dist = preapre_distance(real_distance);
                 int line = change_line_color(real_distance, Values.shif_m);
+                steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
                 //Debug.WriteLine($"{Math_Formulas.radian_to_degree(dis)} dist:{dist} {real_distance} {dis * earth_radius_m}  ");
-                double[] ret = { dist, line };
+                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
+                add_pin(Values.current_point[0], b[0], pin_loc, map);
+                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
+                double[] ret = { dist, line, dir };
                 return ret;
             }
             else if(function == Values.Function.perpendicular)
             {
+                direction = Templates.chceck_direction(function, Values.compass, 0);
                 double dis = Math_Formulas.distance_radian(value_for_perpendicular_fun.reference_a, Values.current_point[0], Values.current_point[1] - Values.current_point[1]);
                 double distance_m = dis * (Values.earth_radius_m + Values.asl);
                 double dist = preapre_distance(distance_m);
                 //Debug.WriteLine($"my dis {dist} {dis * earth_radius_m}");
                 int line = change_line_color(distance_m, Values.shif_m);
+                steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
+
                 add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
                 add_pin(value_for_perpendicular_fun.reference_a, Values.current_point[1], pin_loc, map);
-                double[] ret = { dist, line };
+                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
+                double[] ret = { dist, line, dir };
                 return ret;
             }
             double[] val = {0};
@@ -126,7 +132,7 @@ namespace navsharp
                 // pin_loc3.ToolTip = $"{Math_Formulas.radian_to_degree(diss[0])} {Math_Formulas.radian_to_degree(diss[0])}";
                 //pin_curloc.ToolTip = $"{Math_Formulas.radian_to_degree(Values.current_point[0])} {Math_Formulas.radian_to_degree(Values.current_point[1])}";
                 add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                last_length_c = diss[2];
+
                 last_points(Values.current_point[0], Values.current_point[1]);
             }
             
@@ -143,34 +149,6 @@ namespace navsharp
             Pushpin pin1 = new Pushpin();
             Location loc1 = new Location(Math_Formulas.radian_to_degree(mojenowe_a), Math_Formulas.radian_to_degree(mojenowe_b));
             pin1.Location = loc1;
-            map.Children.Add(pin1);
-           }
-        /*
-         * 
-         * 
-         * 
-         * def getEndpoint(lat1,lon1,bearing,d):
-    R = 6371                     #Radius of the Earth
-    brng = math.radians(bearing) #convert degrees to radians
-   
-    lat1 = math.radians(lat1)    #Current lat point converted to radians
-    lon1 = math.radians(lon1)    #Current long point converted to radians
-    lat2 = math.asin( math.sin(lat1)*math.cos(d/R) + math.cos(lat1)*math.sin(d/R)*math.cos(brng))
-    lon2 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),math.cos(d/R)-math.sin(lat1)*math.sin(lat2))
-    lat2 = math.degrees(lat2)
-    lon2 = math.degrees(lon2)
-    return (lat2, lon2)
-
-lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
-         */
-        public void draw_route(double a, double b)
-        {
-            Pushpin pin1 = new Pushpin();
-
-            Location loc1 = new Location(a, b);
-            pin1.Location = loc1;
-             map.Children.Add(pin1);
-
 
         }
         public void validation( double[] cur_points)
@@ -193,6 +171,8 @@ lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
                     value_for_rise_fun.alpha = Math_Formulas.calculate_alpha(Values.main_points[0], bx);
                     value_for_rise_fun.beta = Math.Acos(Math.Sin(value_for_rise_fun.alpha) * Math.Cos(bx));
                     value_for_rise_fun.delta = Templates.template_for_growing(bx, Values.main_points[1]);
+
+                    //Values.angle = value_for_rise_fun.beta;
                 }
                 else if (function == Values.Function.decreasing)//maleje
                 {
@@ -216,89 +196,110 @@ lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
             ///Debug.WriteLine($"{main_points[0]} {main_points[1]} {main_points[2]} {main_points[3]}");
 
             //timer.Start();
-            pin_curloc.Name = "curr";
+            /*
             map.Children.Add(pin_curloc);
             map.Children.Add(pin_loc);
             map.Children.Add(pin1);
-
-            start_angle = value_for_rise_fun.beta;
-
-            start_a = Values.main_points[0];
-            start_b = Values.main_points[1];
+            map.Children.Add(pin2);
+            
+            map.Children.Add(poly);
+            */
             //draw_main_line();
             add_lines();
             //draw_route();
             is_validated = true;
         }
-        private double[] calculate_target(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double ref_a, double ref_b)
+        private void steering(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
         {
-
-            /*
-            * tutaj jest liczona odległość do danej linii(do któej bd dąż/rzył objekt, więc teraz trzeba obliczyć punkt 
-            */
-            double shift_length = num_of_line * Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
-            double[] target_points = { 0, 0 };
+            double[] points = calculate_look_ahead(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
+            Values.angle = Math_Formulas.calculate_steering(points[0], points[1], current_a, current_b, points[2] * distance_to_line, points[3], earth_radius, vehicle_degree, look_ahead, points[4]);
+        }
+        private double[] calculate_look_ahead(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double shift_length = num_of_line * Math_Formulas.calculate_radian_using_radius_and_length(shift, earth_radius);
+            double[] target_points = { 0, 0, 0, 0, 0 };
+            double ahead = Math_Formulas.calculate_radian_using_radius_and_length(look_ahead, earth_radius);
 
             if (function == Values.Function.growing)
             {
-                double a = Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + current_b);
-                if (a < current_a)
-                {
-                    target_points = Math_Formulas.calculate_shift_for_growing_fun_down(ref_a, ref_b, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    return target_points;
-                }
-                else
-                {
-                    target_points = Math_Formulas.calculate_shift_for_growing_fun_up(ref_a, ref_b, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    return target_points;
-                }
+                double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+                double degree = (direction == Values.Direction.growing) ? value_for_rise_fun.beta : (value_for_rise_fun.beta + Math.PI);
 
-                Debug.WriteLine($"dis:{Math_Formulas.radian_to_degree(target_points[0])} {Math_Formulas.radian_to_degree(target_points[1])}");
-                Location loc = new Location(Math_Formulas.radian_to_degree(target_points[0]), Math_Formulas.radian_to_degree(target_points[1]));
+                double current_c = Math_Formulas.calculate_c_using_a_and_b(current_a, current_b + value_for_rise_fun.delta);
+                double shifted_c = current_c + multiplicator * ahead;
+                double shifted_a = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c, value_for_rise_fun.alpha);
+                double shifted_b = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
+
+                double[] points = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a, shifted_b, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
                 pin1.Location = loc;
+                target_points[0] = points[0];
+                target_points[1] = points[1];
+                target_points[2] = multiplicator;
+                target_points[3] = ahead;
+                target_points[4] = degree;
+                return target_points;
 
             }
             if (function == Values.Function.decreasing)
             {
-                double a = Math.Atan(Math.Tan(value_for_decreasing_fun.alpha) * Math.Sin(value_for_decreasing_fun.b_length - Values.current_point[1]));
-               
-                if (a < current_a)
-                {
-                    target_points = Math_Formulas.calculate_shift_for_decreasing_fun_down(ref_a, ref_b, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    return target_points;
-                }
-                else
-                {
-                    target_points = Math_Formulas.calculate_shift_for_decreasing_fun_down(ref_a, ref_b, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    return target_points;
-                }
 
-                //Debug.WriteLine($"dis:{Math_Formulas.radian_to_degree(target_points[0])} {Math_Formulas.radian_to_degree(target_points[1])}");
-                Location loc = new Location(Math_Formulas.radian_to_degree(target_points[0]), Math_Formulas.radian_to_degree(target_points[1]));
+                double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+                double degree = (direction == Values.Direction.growing) ? 2 * Math.PI - value_for_decreasing_fun.beta : (Math.PI - value_for_decreasing_fun.beta);
+
+                double current_c = Math_Formulas.calculate_c_using_a_and_b(current_a, value_for_decreasing_fun.b_length - current_b);
+                double shifted_c = current_c + multiplicator * ahead;
+                double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c, value_for_decreasing_fun.alpha);
+                double shifted_b_down = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c, value_for_decreasing_fun.alpha);
+
+                double[] points = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_down, shifted_b_down, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
                 pin1.Location = loc;
+                target_points[0] = points[0];
+                target_points[1] = points[1];
+                target_points[2] = multiplicator;
+                target_points[3] = ahead;
+                target_points[4] = degree;
+
+                return target_points;
+                //Location loc = new Location(Math_Formulas.radian_to_degree(target_points[0]), Math_Formulas.radian_to_degree(target_points[1]));
+                //pin1.Location = loc;
 
             }
-            return target_points;
+            else if (function == Values.Function.vertical)
+            {
+                double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+                double degree = (direction == Values.Direction.growing) ? 0 : Math.PI;
+                double top_a = current_a + multiplicator * Math_Formulas.calculate_radian_using_radius_and_length(ahead * earth_radius, earth_radius);
+                double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, -num_of_line * shift, earth_radius);
+                Location loc = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(b[0]));
+                pin1.Location = loc;
+                target_points[0] = top_a;
+                target_points[1] = b[0];
+                target_points[2] = multiplicator;
+                target_points[3] = ahead;
+                target_points[4] = degree;
+            }
+            else if (function == Values.Function.perpendicular)
+            {
+                double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+                double degree = (direction == Values.Direction.growing) ? (Math.PI / 2) : 1.5 * Math.PI;
+                
+                double[] points = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, current_b, current_b, ahead* earth_radius, earth_radius);
+                double top_b = current_b + multiplicator * points[2];
+                double[] a_top = Math_Formulas.calculate_shift_for_perpendicular(value_for_perpendicular_fun.reference_a, current_b, value_for_perpendicular_fun.reference_a, num_of_line * shift, earth_radius);
+                Location loc = new Location(Math_Formulas.radian_to_degree(a_top[0]), Math_Formulas.radian_to_degree(top_b));
+                pin1.Location = loc;
+                target_points[0] = a_top[0];
+                target_points[1] = top_b;
+                target_points[2] = multiplicator;
+                target_points[3] = ahead;
+                target_points[4] = degree;
+                return target_points;
+            }
+                return target_points;
         }
-        public void calculate_angle(double distance_m, double length, double slider)
-        {
-            double c = Math_Formulas.calculate_c_using_a_and_b(Values.current_point[0], Values.current_point[1]+ value_for_rise_fun.delta);
-            c += slider;
-            double a3 = Math.Asin(Math.Sin(value_for_rise_fun.alpha) * Math.Sin(c));
-            double b3 = Math.Atan(Math.Cos(value_for_rise_fun.alpha) * Math.Tan(c)) - value_for_rise_fun.delta;
-            
 
-
-            double distance = Math_Formulas.calculate_radian_using_radius_and_length(distance_m, Values.earth_radius_m + Values.asl);
-            double ld = slider;// Math_Formulas.distance_radian(Values.current_point[0], a3, b3 - Values.current_point[1]);
-
-            double sin = distance / ld;
-            double theta = Math.Atan2((2 * length * sin), ld);
-            Location loc = new Location(Math_Formulas.radian_to_degree(a3), Math_Formulas.radian_to_degree(b3));
-            //pin.Location = loc;
-            //Debug.WriteLine($"angle {Math_Formulas.radian_to_degree(Math.Asin(sin))} {Math_Formulas.radian_to_degree(theta)} {distance_m}");
-
-        }
         private int change_line_color(double real_shift, double width)//rest of division
         {
             int line = Math_Formulas.which_line(real_shift, width);
@@ -615,11 +616,13 @@ lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
                 double shift_length = 0;
                 double shift_right = Values.shif_m;
                 double shift_left = -Values.shif_m;
+                double top_a = Values.main_points[2] + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
+                double down_a = Values.main_points[0] - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
+                main_line = new Lines(top_a, Values.main_points[1], down_a, Values.main_points[3], map, "Blue");
+                main_line.draw_line();
                 for (int index = 0; index < Values.how_many_lines; index++)
                 {
                     shift_length += Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
-                    double top_a = Values.main_points[2] + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl); 
-                    double down_a = Values.main_points[0] - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
 
                     double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, shift_right, Values.earth_radius_m + Values.asl);
       
@@ -648,6 +651,9 @@ lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
                 double _shift_down = -Values.shif_m;
                 double[] b_1 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[1], Values.main_points[1], Values.line_distance_m, Values.earth_radius_m + Values.asl);
                 double[] b_3 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[3], Values.main_points[3], Values.line_distance_m, Values.earth_radius_m + Values.asl);
+                
+                main_line = new Lines(Values.main_points[0], Values.main_points[1] - b_1[2], Values.main_points[2], Values.main_points[3] + b_3[2], map, "Blue");
+                main_line.draw_line();
                 for (int index = 0; index < Values.how_many_lines; index++)
                 {
                     
@@ -673,11 +679,6 @@ lat2, lon2 = getEndpoint(lat1=50,lon1=8,bearing=310,d=23)
                     mappolyline[mappolyline.Count - 1].draw_line();
                     mappolyline.Add(new Lines(a_down[0], top_b, a_down[0], down_b, map, "Red"));
                     mappolyline[mappolyline.Count - 1].draw_line();
-                   
-                    //Debug.WriteLine($"{Math_Formulas.radian_to_degree(a_top[0])} {Math_Formulas.radian_to_degree(value_for_vertical_fun.reference_b)}");
-                    
-                    
-
                 }
             }
 

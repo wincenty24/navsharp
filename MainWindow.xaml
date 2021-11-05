@@ -4,28 +4,187 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:navsharp"
         mc:Ignorable="d"
         WindowState="Maximized"
         Loaded="Window_Loaded"
-        Title="MainWindow" Height="824" Width="1536">
-    <Grid>
-        <TabControl>
-            <TabItem Header=" map">
-                <Grid>
-                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" Margin="0,34,212,-0.6"/>
-                    <Button x:Name="button_b_minus" Content="b -" Click="button_b_minus_Click" Width="75" Margin="0,-4,1449,733" RenderTransformOrigin="0.493,0.036"/>
-                    <Button x:Name="button_b_plus" Content="b +" Click="button_b_plus_Click" HorizontalAlignment="Left" Margin="75,-4,0,733"  Width="75"/>
-                    <Button x:Name="button_a_minus" Click="button_a_minus_Click" Content="a -"  Width="75" Margin="192,-4,1257,733"/>
-                    <Button x:Name="button_a_plus" Click="button_a_plus_Click" Content="a +" HorizontalAlignment="Left" Margin="267,-4,0,0" VerticalAlignment="Top" Width="75" Height="38"/>
-                    <Button Content="angle +" x:Name="angle_plus" Width="75" Margin="847,0,602,733" Click="angle_plus_Click"/>
-                    <Button Content="angle -" x:Name="angle_minus"  HorizontalAlignment="Left" Margin="922,0,0,0" VerticalAlignment="Top" Width="75" Height="34"/>
+        Title="MainWindow" Height="838" Width="1550">
+    <Window.Resources>
+        <Storyboard x:Key="expand_map">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="main_map">
+                <EasingDoubleKeyFrame KeyTime="0" Value="1330"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="1472"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="close_map">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="main_map">
+                <EasingDoubleKeyFrame KeyTime="0" Value="1472"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="1330"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
 
-                    <Slider x:Name="slider" Margin="1012,0,217,733" Minimum="-15" Maximum="15" TickPlacement="BottomRight" TickFrequency="1" IsSnapToTickEnabled="True" SmallChange="1" />
-                    <Slider x:Name="slider2" Margin="362,0,737,733"
-                            Minimum="0" Maximum="0.000005" TickPlacement="BottomRight" />
+        <Storyboard x:Key="close_menu">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="menu_grid">
+                <EasingDoubleKeyFrame KeyTime="0" Value="58"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="200"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="expand_menu">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="menu_grid">
+                <EasingDoubleKeyFrame KeyTime="0" Value="200"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="58"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="expand_menu_button">
+            <BeginStoryboard Storyboard="{StaticResource close_map}"/>
+            <BeginStoryboard Storyboard="{StaticResource close_menu}"/>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="close_menu_button">
+            <BeginStoryboard Storyboard="{StaticResource expand_menu}"/>
+            <BeginStoryboard Storyboard="{StaticResource expand_map}"/>
+        </EventTrigger>
+    </Window.Triggers>
+    <Grid >
+
+
+        <TabControl SelectionChanged="TabControl_SelectionChanged" Grid.ColumnSpan="2">
+            <TabItem Header="Map">
+                <Grid >
+                    <Grid.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#FF784747" Offset="0"/>
+                            <GradientStop Color="#FF7A83E2" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    <Grid x:Name="menu_grid" HorizontalAlignment="Left" Width="200">
+                        <Grid Margin="0,0,0,731">
+                            <DockPanel >
+                                <Button Visibility="Hidden" x:Name="expand_menu_button" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="expand_menu_button_Click" Height="50" Width="62">
+                                    <Button.Background>
+                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                            <GradientStop Color="Black" Offset="0"/>
+                                            <GradientStop Color="#FF303757" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Button.Background>
+                                    <materialDesign:PackIcon Kind="OpenInApp" />
+
+                                </Button>
+                                <Button  x:Name="close_menu_button"  Click="close_menu_button_Click" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="53" Height="35">
+                                    <Button.Background>
+                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                            <GradientStop Color="Black" Offset="0"/>
+                                            <GradientStop Color="#FF303757" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Button.Background>
+                                    <materialDesign:PackIcon Kind="Close" />
+
+                                </Button>
+
+                            </DockPanel>
+                        </Grid>
+                        <Grid Margin="0,40,0,0"  DockPanel.Dock="Top" ShowGridLines="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <Button Grid.Column="0" Grid.Row="0" x:Name="new_points_button" Click="new_points_button_Click" Content="NEW" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
+                            <Button Grid.Column="0" Grid.Row="1" x:Name="a_point_button" Click="a_point_button_Click" IsEnabled="False" Content="A" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
+                            <Button Grid.Column="0" Grid.Row="2" x:Name="b_point_button" Click="b_point_button_Click" IsEnabled="False" Content="B" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
+                            <Button Grid.Column="0" Grid.Row="3"  Content="START" Height="30" Width=" 80" Background="#FF384D3A" />
+
+                            <Grid Grid.Row="9">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Button x:Name="zoom_plus_button" Click="zoom_plus_button_Click" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left"  Height="41" Width="67">
+                                    <materialDesign:PackIcon Kind="ZoomIn"/>
+                                </Button>
+                                <Button x:Name="zoom_minus_button" Click="zoom_minus_button_Click" Grid.Column="0" Grid.Row="1" Height="41" Width="67">
+                                    <materialDesign:PackIcon Kind="ZoomOut"/>
+                                </Button>
+                                <ToggleButton ToggleButton.Unchecked="ToggleButton_Unchecked" ToggleButton.Checked="ToggleButton_Checked" Grid.Column="1" Grid.Row="1" Height="41" Width="67">
+                                    
+                                </ToggleButton>
+
+                            </Grid>
+
+
+
+                        </Grid>
+
+                    </Grid>
+
+                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="725" Width="1330"/>
+                    <Button Content="angle +" x:Name="angle_plus" Width="75" Height="34" Margin="1017,2,446,747" Click="angle_plus_Click"/>
+                    <Button Content="angle -" x:Name="angle_minus"  HorizontalAlignment="Left" Margin="1463,10,0,0" VerticalAlignment="Top" Width="75" Height="34" Click="angle_minus_Click"/>
+                    <TextBlock x:Name="arrow_left" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="667,0,821,0"><InlineUIContainer>
+                            <materialDesign:PackIcon Kind="ArrowRightBoldCircle" Height="43" Width="50"/>
+                        </InlineUIContainer></TextBlock>
+                    <TextBlock x:Name="distance_textblock" TextAlignment="Center" FontSize="20" TextWrapping="Wrap" Text="---" Margin="727,0,731,747" RenderTransformOrigin="0.5,0.5"/>
+                    <TextBlock x:Name="arrow_right" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="812,0,676,0"><InlineUIContainer>
+                        <materialDesign:PackIcon Kind="ArrowLeftBoldCircle" Height="43" Width="50"/>
+                        </InlineUIContainer></TextBlock>
                 </Grid>
             </TabItem>
+            <TabItem Header="Serrings">
+                <Grid>
+                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="0,10,0,0" TextWrapping="Wrap" Text="Weight:" VerticalAlignment="Top" Height="30" Width="72"/>
+                    <TextBox x:Name="weight_textbox" FontSize="20" HorizontalAlignment="Left" Height="34" Margin="77,6,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="95" RenderTransformOrigin="0.5,0.211"/>
+                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Machine's length:" Margin="0,60,1366.4,686.8"/>
+                    <TextBox x:Name="length_textbox" FontSize="20" TextWrapping="Wrap" Text="TextBox" Margin="162,56,1260,691"/>
+                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Controller port:" Margin="842,10,527,727"/>
+                    <Button x:Name="choose_controller_port" Click="choose_controller_port_Click" FontSize="20" Content="Choose" Margin="842,229,596.4,503.8"/>
+                    <ListBox x:Name="controller_port" MouseDoubleClick="controller_port_MouseDoubleClick" FontSize="15" Margin="842,85,446.4,571.8"/>
+                    <Button x:Name="Refresh_com_port" Click="Refresh_com_port_Click" FontSize="20" Content="Refresh" HorizontalAlignment="Left" Margin="1428,7,0,725.8"  Width="100"/>
+                    <TextBlock x:Name="Controller_port_name_textblock" Height="30" FontSize="20" TextWrapping="Wrap" Text="" Width="100" Margin="846,45,592,706"/>
+
+
+                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="1172,10,0,0" TextWrapping="Wrap" Text="Satellite module port:" VerticalAlignment="Top"/>
+                    <TextBlock x:Name="Satelite_port_name_textblock" FontSize="20" HorizontalAlignment="Left" Margin="1172,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text=""/></TextBlock>
+
+                    <Button x:Name="Choose_satelites_port" Click="Choose_satelites_port_Click" FontSize="20" Content="Choose" Margin="1172,229,266.4,503.8"/>
+                    <ListBox FontSize="20" x:Name="satelite_port" MouseDoubleClick="satelite_port_MouseDoubleClick" Margin="1172,85,120.4,571.8"/>
+                    <Button x:Name="save_button" Content="Save" Margin="40,395,1401,354" Click="save_button_Click"/>
+                    <TextBox x:Name="look_ahead_textbox" Height="35" FontSize="20" HorizontalAlignment="Left" Margin="107,106,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" TextChanged="look_ahead_textbox_TextChanged"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,110,0,0" TextWrapping="Wrap" Text="Look ahead" VerticalAlignment="Top"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,160,0,0" TextWrapping="Wrap" Text="Lines to draw" VerticalAlignment="Top"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,210,0,0" TextWrapping="Wrap" Text="Look ahead to lines" VerticalAlignment="Top"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,260,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,310,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
+                    <TextBox x:Name="lines_to_draw_textbox" FontSize="20" HorizontalAlignment="Left" Height="35" Margin="127,156,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" TextChanged="lines_to_draw_TextChanged"/>
+                    <TextBox x:Name="look_ahead_to_lines_textbox" FontSize="20" HorizontalAlignment="Left" Height="31" Margin="176,209,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                    <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,260,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                    <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,310,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                </Grid>
+
+            </TabItem>
+
+
+
+
+
+
+
 
 
 

@@ -22,25 +22,19 @@ namespace navsharp
         public volatile string data;
 
         FakeCoordinates fakeCoordinates;
-        public SerialBoss(string port, int baud)
-        {
-            this.baud = baud;
-            this.port = port;
-            serialPort = new SerialPort();
-            serialPort.PortName = port;
-            serialPort.BaudRate = 9600;
-            set();
-        }
+
         public SerialBoss()
         {
             serialPort = new SerialPort();
-            serialPort.PortName = "COM3";
-            serialPort.BaudRate = 9600;
+            //set("COM3", 9600);
 
-            set();
         }
-        private void set()
+        public void set(string port, int baud)
         {
+            serialPort.PortName = port;
+            serialPort.BaudRate = baud;
+            this.baud = baud;
+            this.port = port;
             serialPort.Parity = Parity.None;
             serialPort.DataBits = 8;
             serialPort.StopBits = StopBits.One;
@@ -107,11 +101,22 @@ namespace navsharp
              * fake coordinates
              * 
              */
-            fakeCoordinates.angle = fakeCoordinates.angle % 360;
-            double angle2 = fakeCoordinates.angle += Math_Formulas.degree_to_radian(angle);
-            double[] cd = fakeCoordinates.calculate_coordinates(Values.earth_radius_m + Values.asl, speed);
+            fakeCoordinates.angle = prepare_compass(fakeCoordinates.angle);
+            double angle2 = fakeCoordinates.angle += (Math_Formulas.degree_to_radian(angle)/5);
+            double[] cd = fakeCoordinates.calculate_coordinates(Values.earth_radius_m + Values.asl, Math_Formulas.calculate_radian_using_radius_and_length(speed, Values.earth_radius_m + Values.asl));
             double[] ret = { cd[0], cd[1], angle2 };
             return ret;
+        }
+        private double prepare_compass(double val)
+        {
+
+            val = val % (2 * Math.PI);
+            if(val < 0)
+            {
+                return val + (2 * Math.PI);
+            }
+            //Debug.WriteLine($"{Math_Formulas.radian_to_degree(val)}");
+            return val;
         }
     }
 }

@@ -24,8 +24,8 @@ namespace navsharp
         }
         public double[] calculate_coordinates(double earth_radius_m, double speed)
         {
-            double lat2 = Math.Asin(Math.Sin(lat1) * Math.Cos(speed / earth_radius_m) + Math.Cos(lat1) * Math.Sin(speed / earth_radius_m) * Math.Cos(angle));
-            double lon2 = lon1 + Math.Atan2(Math.Sin(angle) * Math.Sin(speed / earth_radius_m) * Math.Cos(lat1), Math.Cos(speed / earth_radius_m) - Math.Sin(lat1) * Math.Sin(lat2));
+            double lat2 = Math.Asin(Math.Sin(lat1) * Math.Cos(speed) + Math.Cos(lat1) * Math.Sin(speed) * Math.Cos(angle));
+            double lon2 = lon1 + Math.Atan2(Math.Sin(angle) * Math.Sin(speed) * Math.Cos(lat1), Math.Cos(speed) - Math.Sin(lat1) * Math.Sin(lat2));
       
             lat1 = lat2;
             lon1 = lon2;

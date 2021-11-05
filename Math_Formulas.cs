@@ -280,7 +280,6 @@ namespace navsharp
                 double b3 = Math.Atan(Math.Cos(alpha) * Math.Tan(c2));
                 return_a = a3;
                 return_b = b_length - b3;
-                Debug.WriteLine("DUPA");
                 double radian_distance = distance_radian(a3, curr_loc_a, curr_loc_b - b3);
                 return_shift = Math.Asin(Math.Tan(b1) / Math.Tan(beta));
             }
@@ -387,6 +386,40 @@ namespace navsharp
         {
             return (int)Math.Round(real_shift / width, 0, MidpointRounding.AwayFromZero);
         }
+        public static int map(int x, int in_min, int in_max, int out_min, int out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+        public static float mapf(float x, float in_min, float in_max, float out_min, float out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+        public static double mapd(double x, double in_min, double in_max, double out_min, double out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+
+        public static double calculate_b_for_the_same_a(double b_2, double a, double distance)
+        {
+            return b_2 - 2 * Math.Asin(Math.Sin(distance / 2)/ Math.Cos(a));
+        }
+        public static double calculate_a_for_the_same_b(double a_2, double distance)
+        {
+            return a_2 + 2 * Math.Asin(Math.Sin(distance/2));
+        }
+
+        public static double[] calculate_points_using_beta_angle(double current_a, double current_b, double c, double angle)
+        {
+            double b = Math.Cos(angle) * c;
+            double a = Math.Sin(angle) * c;
+            double new_a = calculate_a_for_the_same_b(current_a, a);
+            double new_b = calculate_b_for_the_same_a(current_b, current_a, b);
+
+            double[] returner = { new_a, new_b };
+
+            return returner;
+        }
+
         public static double distance_to_line(double curr_diss, double my_distance)
         {
             double half_shift = my_distance / 2;
@@ -404,7 +437,33 @@ namespace navsharp
             return 0;
         }
 
+        public static double calculate_steering(double target_a, double target_b, double current_a, double current_b, double shift_to_line, double ahead, double earth_radius, double vehicle_degree, double look_ahead_m, double ref_degree)
+        {
+            double distance = Math.Abs(distance_radian(target_a, current_a, target_b - current_b));
+            shift_to_line /= earth_radius;
+            double L = calculate_radian_using_radius_and_length(look_ahead_m, earth_radius);
+            double alpha = (ref_degree - vehicle_degree) - Math.Asin(shift_to_line / (distance));
+            double k = (2 * shift_to_line) / Math.Pow(distance, 2);
+            double r = Math.Pow(distance, 2) / (2 * shift_to_line);
+            double theta = Math.Atan2(2 * L * Math.Sin(alpha), distance);
+            //Debug.WriteLine($"{value_for_rise_fun.beta} {Values.compass} alpha {alpha} theta {alpha}");
+            //Values.angle = theta;
+            return theta;
+        }
+        public static double prepare_degree_for_compass(double degree)
+        {
 
+            degree = degree % (2 * Math.PI);
+            if (degree < 0)
+            {
+                return degree + (2 * Math.PI);
+            }
+            return degree;
+        }
+        public static double distance_to_radian(double dist, double radius)
+        {
+            return dist / radius;
+        }
 
     }
 }

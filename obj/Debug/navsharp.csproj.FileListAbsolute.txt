@@ -45,3 +45,9 @@ C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\WebSharper.JQuery.xml
 C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\WebSharper.Main.xml
 C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\WebSharper.Sitelets.xml
 C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\WebSharper.Web.xml
+C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\MaterialDesignColors.dll
+C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\MaterialDesignThemes.Wpf.dll
+C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\MaterialDesignColors.pdb
+C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\MaterialDesignThemes.Wpf.pdb
+C:\Users\wince\source\repos\navsharp\navsharp\bin\Debug\MaterialDesignThemes.Wpf.xml
+C:\Users\wince\source\repos\navsharp\navsharp\obj\Debug\App.baml
