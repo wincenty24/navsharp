@@ -38,8 +38,12 @@ namespace navsharp
         MapPolyline polyline = new MapPolyline();
         LocationCollection locations;
         LocationCollection points = new LocationCollection();
+        List<LocationCollection> list_location_collection = new List<LocationCollection>();
+        List<MapPolyline> list_MapPolyline = new List<MapPolyline>();
         Pushpin main_pin = new Pushpin();
-        bool asd = false;
+        Pushpin a_pin = new Pushpin();
+        Pushpin b_pin = new Pushpin();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -52,12 +56,12 @@ namespace navsharp
         }
         private void draw_trace()
         {
-            points.Add(new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1])));
-            polyline.Locations = points;
+            list_location_collection[Values.num_track_line].Add(new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1])));
+            list_MapPolyline[Values.num_track_line].Locations = list_location_collection[Values.num_track_line];
         }
         private void main_fun()
         {
-            if (slayer.is_validated)
+;            if (slayer !=null && slayer.IsValidated() && slayer.is_working)
             {
 
                 double[] dist = slayer.invoke_main_fun();
@@ -103,44 +107,22 @@ namespace navsharp
         {
             if (sb.is_port_available())
             {
-
                 double[] val = sb.prepared_data();
                 Values.current_point[0] = val[0];
                 Values.current_point[1] = val[1];
                 Location location = new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1]));
                 main_pin.Location = location;
+                Values.compass = val[2];
                 if (Values.centerize)
                 {
                     main_map.Center = location;
                 }
-                Values.compass = val[2];
-                
-                main_map.Heading = -Math_Formulas.radian_to_degree(Values.compass);
-               
-                if (!asd)
+                if (Values.heading)
                 {
-                    polyline.Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
-                    polyline.StrokeThickness = 5;
-                    polyline.Opacity = 0.7;
-                    main_map.Children.Add(polyline);
-                    asd = true;
+                    main_map.Heading = -Math_Formulas.radian_to_degree(Values.compass);
                 }
-
                 main_fun();
-            }
-            
-         
-        }
-
-
-        private void button_b_minus_Click(object sender, RoutedEventArgs e)
-        {
-            Values.current_point[1] -= 0.0000007;
-        }
-
-        private void button_b_plus_Click(object sender, RoutedEventArgs e)
-        {
-            Values.current_point[1] += 0.0000007;
+            }      
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -159,7 +141,19 @@ namespace navsharp
             //assign_start_point_B();
             main_map.ZoomLevel = 18;
             main_map.Children.Add(main_pin);
+
         }
+        /*
+        private void add_mappolyline(int num_pol)
+        {
+            list_location_collection.Add(new LocationCollection());
+            list_MapPolyline.Add(new MapPolyline());
+            list_MapPolyline[num_pol].Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
+            list_MapPolyline[num_pol].StrokeThickness = 5;
+            list_MapPolyline[num_pol].Opacity = 1;
+            main_map.Children.Add(list_MapPolyline[num_pol]);
+        }
+        */
         private void save_button_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -184,7 +178,7 @@ namespace navsharp
                 Values.look_ahead_m = Convert.ToDouble(Properties.Settings.Default.look_ahead_save.ToString());
                 Values.how_many_lines = Convert.ToInt32(Properties.Settings.Default.lines_to_draw_save.ToString());
                 Values.line_distance_m = Convert.ToDouble(Properties.Settings.Default.look_ahead_to_lines_save.ToString());
-                Debug.WriteLine($"Values.look_ahead_m: {Values.look_ahead_m}");
+                //Debug.WriteLine($"Values.look_ahead_m: {Values.look_ahead_m}");
             }
             catch
             {
@@ -223,8 +217,8 @@ namespace navsharp
             }
             else
             {
-                controller.set("COM4", 9600);
-                sb.set("COM3", 9600);
+                //controller.set("COM4", 9600);
+                //sb.set("COM3", 9600);
 
                 System.Windows.MessageBox.Show("Can't connect with a ports!");
             }
@@ -256,7 +250,7 @@ namespace navsharp
             // \ 51.230939, 17.361992
             double as1 = Math_Formulas.degree_to_radian(51.208477);
             double bs1 = Math_Formulas.degree_to_radian(17.312763);
-            main_map.Center = new Location(Math_Formulas.radian_to_degree(as1), Math_Formulas.radian_to_degree(bs1));
+            //main_map.Center = new Location(Math_Formulas.radian_to_degree(as1), Math_Formulas.radian_to_degree(bs1));
             //51,225702, 17,372333
             //double as1 = math.degree_to_radian(51.141572);
             //double bs1 = math.degre e_to_radian(17.224826);
@@ -274,7 +268,7 @@ namespace navsharp
             Values.main_points[2] = as2;
             Values.main_points[3] = bs2;
 
-            slayer.validation(Values.current_point);
+            
             
           
             Values.current_point[0] = Values.main_points[0];
@@ -321,7 +315,7 @@ namespace navsharp
             Values.current_point[1] = Math_Formulas.degree_to_radian(Convert.ToDouble(val2));
             main_map.Heading = - Math_Formulas.radian_to_degree( slayer.value_for_rise_fun.beta);
             Values.compass = slayer.value_for_rise_fun.beta;
-            if (slayer.is_validated)
+            if (slayer.IsValidated())
             {
                 double[] dist = slayer.invoke_main_fun();
                 Debug.WriteLine(dist[0]);
@@ -401,7 +395,7 @@ namespace navsharp
             }
             catch
             {
-                System.Windows.MessageBox.Show("Something went wrong, during connecting to controller port");
+                System.Windows.MessageBox.Show("Something went wrong, during connecting to controller's port");
             }
         }
 
@@ -410,22 +404,17 @@ namespace navsharp
             Satelite_port_name_textblock.Text = satelite_port.SelectedItem.ToString();
             try
             {
-                controller.set(Satelite_port_name_textblock.Text, 9600);
+                sb.set(Satelite_port_name_textblock.Text, 9600);
             }
             catch
             {
-                System.Windows.MessageBox.Show("Something went wrong, during connecting to controller port");
+                System.Windows.MessageBox.Show("Something went wrong, during connecting to satellite's port");
             }
         }
 
         private void angle_minus_Click(object sender, RoutedEventArgs e)
         {
             // Calculate the points to make up a circle with radius of 200 miles
-
-        }
-
-        private void lines_to_draw_TextChanged(object sender, TextChangedEventArgs e)
-        {
 
         }
 
@@ -471,11 +460,43 @@ namespace navsharp
             assign_start_point_A();
         }
 
+        private void change_main_points()
+        {
+            Values.heading = false;
+            Values.centerize = false;
+            centerize_togglebutton.IsEnabled = false;
+             
+            main_map.Heading = 0;
+
+            a_point_button.Visibility = Visibility.Visible;
+            change_a_plus_button.Visibility = Visibility.Visible;
+            change_a_minus_button.Visibility = Visibility.Visible;
+            change_b_minus_button.Visibility = Visibility.Visible;
+            change_b_plus_button.Visibility = Visibility.Visible;
+            choose_point_to_change_val_button.Visibility = Visibility.Visible;
+            //a_point_button.IsEnabled = true;
+            main_map.Children.Remove(main_pin);
+            main_map.Children.Add(a_pin);
+            a_pin.Content = "A";
+            a_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            main_map.Center = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            main_map.Children.Add(b_pin);
+            b_pin.Content = "B";
+            b_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+        }
         private void b_point_button_Click(object sender, RoutedEventArgs e)
         {
             b_point_button.IsEnabled = false;
             assign_start_point_B();
-
+            if (System.Windows.MessageBox.Show("Would you like to coorect points?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+            {
+                change_main_points();
+                start_button.IsEnabled = true;
+            }
+            else
+            {
+                start_button.IsEnabled = true;
+            }
 
         }
 
@@ -489,14 +510,191 @@ namespace navsharp
             main_map.ZoomLevel--;
         }
 
-        private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        private void ToggleButton_Checked_1(object sender, RoutedEventArgs e)
         {
-            Values.centerize = false;
+
         }
 
-        private void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        private void choose_point_to_change_val_button_Checked(object sender, RoutedEventArgs e)
+        {
+            choose_point_to_change_val_button.Content = "A";
+            if(!Values.centerize)
+                main_map.Center = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+        }
+
+        private void choose_point_to_change_val_button_Unchecked(object sender, RoutedEventArgs e)
+        {
+            choose_point_to_change_val_button.Content = "B";
+            if (!Values.centerize)
+                main_map.Center = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+        }
+
+        private void start_button_Click(object sender, RoutedEventArgs e)
+        {
+           
+            //start_button.Visibility = Visibility.Hidden;
+            a_point_button.Visibility = Visibility.Hidden;
+            change_a_plus_button.Visibility = Visibility.Hidden;
+            change_a_minus_button.Visibility = Visibility.Hidden;
+            change_b_minus_button.Visibility = Visibility.Hidden;
+            change_b_plus_button.Visibility = Visibility.Hidden;
+            choose_point_to_change_val_button.Visibility = Visibility.Hidden;
+            stop_button.Visibility = Visibility.Visible;
+
+            if (!main_pin.IsLoaded)
+            {
+                main_map.Children.Add(main_pin);
+            }
+            if (a_pin.IsLoaded)
+            {
+                main_map.Children.Remove(a_pin);
+            }
+            if (main_map.IsLoaded)
+            {
+                main_map.Children.Remove(b_pin);
+            }
+            if (!Values.heading)
+            {
+                Values.heading = true;
+            }
+            if (!Values.centerize)
+            {
+                Values.centerize = true;
+            }
+            if (centerize_togglebutton.IsEnabled == false )
+            {
+                centerize_togglebutton.IsEnabled = true;
+            }
+            slayer.validation(Values.current_point);
+            slayer.is_working = true;
+            start_button.IsEnabled = false;
+            stop_button.IsEnabled = true;
+            Lines.add_mappolyline(main_map, 0, ref list_location_collection, ref list_MapPolyline);
+
+        }
+
+        private void change_a_plus_button_Click(object sender, RoutedEventArgs e)
+        {
+            if (choose_point_to_change_val_button.IsChecked == true)
+            {
+                Values.main_points[0] += Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m+ Values.asl);
+                a_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            }
+            else
+            {
+                Values.main_points[2] += Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                b_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+            }
+        }
+
+        private void change_a_minus_button_Click(object sender, RoutedEventArgs e)
+        {
+            if (choose_point_to_change_val_button.IsChecked == true)
+            {
+                Values.main_points[0] -= Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                a_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            }
+            else
+            {
+                Values.main_points[2] -= Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                b_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+            }
+        }
+
+        private void change_b_plus_button_Click(object sender, RoutedEventArgs e)
+        {
+            if (choose_point_to_change_val_button.IsChecked == true)
+            {
+                Values.main_points[1] += Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                a_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            }
+            else
+            {
+                Values.main_points[3] += Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                b_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+            }
+        }
+
+        private void change_b_minus_button_Click(object sender, RoutedEventArgs e)
+        {
+            if (choose_point_to_change_val_button.IsChecked == true)
+            {
+                Values.main_points[1] -= Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                a_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[0]), Math_Formulas.radian_to_degree(Values.main_points[1]));
+            }
+            else
+            {
+                Values.main_points[3] -= Math_Formulas.distance_to_radian(0.1, Values.earth_radius_m + Values.asl);
+                b_pin.Location = new Location(Math_Formulas.radian_to_degree(Values.main_points[2]), Math_Formulas.radian_to_degree(Values.main_points[3]));
+            }
+        }
+
+        private void centerize_togglebutton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Values.centerize = false;
+            Values.heading = false;
+        }
+
+        private void centerize_togglebutton_Checked(object sender, RoutedEventArgs e)
         {
             Values.centerize = true;
+            Values.heading = true;
         }
+
+        private void stop_button_Click(object sender, RoutedEventArgs e)
+        {
+            slayer.is_working = false;
+            resume_button.IsEnabled = true;
+            stop_button.IsEnabled = false;
+        }
+
+        private void resume_button_Click(object sender, RoutedEventArgs e)
+        {
+            //list_location_collection.Add(new LocationCollection());
+            //list_MapPolyline.Add(new MapPolyline());
+            Values.num_track_line++;
+            //add_mappolyline(Values.num_track_line);
+            Lines.add_mappolyline(main_map, Values.num_track_line, ref list_location_collection, ref list_MapPolyline);
+            //main_map.Children.Add(list_MapPolyline[Values.num_track_line]);
+            slayer.is_working = true;
+
+            resume_button.IsEnabled = false;
+            stop_button.IsEnabled = true;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void clean()
+        {
+            Values.num_track_line = 0;
+            slayer = null;
+            list_location_collection.Clear();
+            list_MapPolyline.Clear();
+        }
+
+        private void save_file_button_Click(object sender, RoutedEventArgs e)
+        {
+            Saver_reader.read(ref list_location_collection, ref Values.main_points, "dupa.txt", ref Values.num_track_line);
+            for (int i = 0; i < Values.num_track_line; i++)
+            {
+                Lines.add_mappolyline(main_map, i, ref list_MapPolyline);
+                list_MapPolyline[i].Locations = list_location_collection[i];
+
+            }
+
+        }
+
+        private void read_fie_button_Click(object sender, RoutedEventArgs e)
+        {
+            Saver_reader.save(list_location_collection, Values.main_points, "dupa.txt");
+        }
+
     }
-}
+} 

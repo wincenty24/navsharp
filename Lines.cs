@@ -40,5 +40,22 @@ namespace navsharp
             map.Children.Add(polyline);
             
         }
+        public static void add_mappolyline(Map mapa, int num_pol, ref List<LocationCollection> list_of_loc_coll, ref List<MapPolyline> list_MapPolyline)
+        {
+            list_of_loc_coll.Add(new LocationCollection()); 
+            list_MapPolyline.Add(new MapPolyline());
+            list_MapPolyline[num_pol].Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
+            list_MapPolyline[num_pol].StrokeThickness = 5;
+            list_MapPolyline[num_pol].Opacity = 1;
+            mapa.Children.Add(list_MapPolyline[num_pol]);
+        }
+        public static void add_mappolyline(Map mapa, int num_pol, ref List<MapPolyline> list_MapPolyline)
+        {
+            list_MapPolyline.Add(new MapPolyline());
+            list_MapPolyline[num_pol].Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
+            list_MapPolyline[num_pol].StrokeThickness = 5;
+            list_MapPolyline[num_pol].Opacity = 1;
+            mapa.Children.Add(list_MapPolyline[num_pol]);
+        }
     }
 }

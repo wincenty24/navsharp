@@ -100,13 +100,60 @@
                                 <RowDefinition/>
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
+                            <Grid Grid.Column="0" Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" x:Name="new_points_button" Click="new_points_button_Click" Content="NEW" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
+                                <Button Grid.Column="1" x:Name="read_fie_button" IsEnabled="False" Height="30" Width="80" Click="read_fie_button_Click">
+                                    <materialDesign:PackIcon Kind="OpenInNew"/>
+                                </Button>
 
-                            <Button Grid.Column="0" Grid.Row="0" x:Name="new_points_button" Click="new_points_button_Click" Content="NEW" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
+                            </Grid>
                             <Button Grid.Column="0" Grid.Row="1" x:Name="a_point_button" Click="a_point_button_Click" IsEnabled="False" Content="A" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
                             <Button Grid.Column="0" Grid.Row="2" x:Name="b_point_button" Click="b_point_button_Click" IsEnabled="False" Content="B" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
-                            <Button Grid.Column="0" Grid.Row="3"  Content="START" Height="30" Width=" 80" Background="#FF384D3A" />
+                            <Button IsEnabled="False" x:Name="start_button" Grid.Column="0" Grid.Row="3" Height="30" Width=" 80" Background="#FF2A8D33" Click="start_button_Click">
+                                <materialDesign:PackIcon Kind="check"/>
+                            </Button>
+                            <Button IsEnabled="False" x:Name="stop_button" Click="stop_button_Click" Grid.Column="0" Grid.Row="4" Height="30" Width="80" Background="#FF660909">
+                                <materialDesign:PackIcon Kind="StopAlert"/>
+                            </Button>
+                            <Button IsEnabled="False"  x:Name="resume_button" Click="resume_button_Click" Grid.Column="0" Grid.Row="5" Height="30" Width="80">
+                                <materialDesign:PackIcon Kind="ReloadAlert"/>
+                            </Button>
+                            <Button x:Name="save_file_button" Click="save_file_button_Click" Grid.Column="0" Grid.Row="6" Height="30" Width="80">
+                                <materialDesign:PackIcon Kind="ContentSave" />
+                            </Button>
 
-                            <Grid Grid.Row="9">
+                            <Grid  Grid.Row="7">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Button x:Name="change_a_plus_button" Height="27" Grid.Column="1" Grid.Row="0" VerticalAlignment="Top" Click="change_a_plus_button_Click">
+                                    <materialDesign:PackIcon Kind="ArrowTop" />
+                                </Button>
+                                <Button x:Name="change_a_minus_button" Height="27" Grid.Column="1" Grid.Row="2" Click="change_a_minus_button_Click">
+                                    <materialDesign:PackIcon Kind="ArrowDown"/>
+                                </Button>
+                                <Button x:Name="change_b_minus_button" Height="27" Grid.Column="0" Grid.Row="1" Click="change_b_minus_button_Click">
+                                    <materialDesign:PackIcon Kind="ArrowLeft"/>
+                                </Button>
+                                <Button x:Name="change_b_plus_button" Click="change_b_plus_button_Click" Height="27" Grid.Column="2" Grid.Row="1">
+                                    <materialDesign:PackIcon Kind="ArrowRight"/>
+                                </Button>
+                                <ToggleButton IsChecked="True" x:Name="choose_point_to_change_val_button" ToggleButton.Checked="choose_point_to_change_val_button_Checked" ToggleButton.Unchecked="choose_point_to_change_val_button_Unchecked" FontSize="20" Content="A" Height="27" Grid.Column="1" Grid.Row="1" >
+
+                                </ToggleButton>
+                            </Grid>
+                            <Grid Grid.Row="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
                                     <ColumnDefinition/>
@@ -122,7 +169,7 @@
                                 <Button x:Name="zoom_minus_button" Click="zoom_minus_button_Click" Grid.Column="0" Grid.Row="1" Height="41" Width="67">
                                     <materialDesign:PackIcon Kind="ZoomOut"/>
                                 </Button>
-                                <ToggleButton ToggleButton.Unchecked="ToggleButton_Unchecked" ToggleButton.Checked="ToggleButton_Checked" Grid.Column="1" Grid.Row="1" Height="41" Width="67">
+                                <ToggleButton x:Name="centerize_togglebutton" IsChecked="True" ToggleButton.Unchecked="centerize_togglebutton_Unchecked" ToggleButton.Checked="centerize_togglebutton_Checked" Grid.Column="1" Grid.Row="1" Height="41" Width="67">
                                     
                                 </ToggleButton>
 
@@ -144,7 +191,7 @@
                     <TextBlock x:Name="arrow_right" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="812,0,676,0"><InlineUIContainer>
                         <materialDesign:PackIcon Kind="ArrowLeftBoldCircle" Height="43" Width="50"/>
                         </InlineUIContainer></TextBlock>
-                </Grid>
+                       </Grid>
             </TabItem>
             <TabItem Header="Serrings">
                 <Grid>
@@ -171,7 +218,7 @@
                     <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,210,0,0" TextWrapping="Wrap" Text="Look ahead to lines" VerticalAlignment="Top"/>
                     <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,260,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
                     <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,310,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
-                    <TextBox x:Name="lines_to_draw_textbox" FontSize="20" HorizontalAlignment="Left" Height="35" Margin="127,156,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" TextChanged="lines_to_draw_TextChanged"/>
+                    <TextBox x:Name="lines_to_draw_textbox" FontSize="20" HorizontalAlignment="Left" Height="35" Margin="127,156,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
                     <TextBox x:Name="look_ahead_to_lines_textbox" FontSize="20" HorizontalAlignment="Left" Height="31" Margin="176,209,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
                     <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,260,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
                     <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,310,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>

@@ -113,11 +113,9 @@ namespace navsharp
         public static double[] calculate_shift_for_growing_fun_down(double a, double b, double shift, double alpha, double beta, double delta)
         {
             double c = calculate_c_using_a_and_b(a, b + delta);
-            double b1 = Math.Atan(Math.Tan(beta) * Math.Sin(shift));//double b1 = Math.Acos(Math.Cos(c1) / Math.Cos(shift));
+            double b1 = Math.Atan(Math.Tan(beta) * Math.Sin(shift));
             double c2 = c - b1;
             double a2 = Math.Asin(Math.Sin(alpha) * Math.Sin(c2));
-
-
             double a3 = Math.Asin(Math.Tan(shift) / Math.Tan(beta));
             double c3 = c + a3;
             double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(c3)) - delta;
@@ -185,7 +183,7 @@ namespace navsharp
                 
                 double bb1 = calculate_b_using_a_and_alpha(curr_loc_a, alpha) - delta;
                 double b1 = bb1 - curr_loc_b;
-                b1 = Math.Abs(b1);
+                b1 = Math.Abs(b1);                                                                                                                                                                                                      
                 double b2 = Math.Atan(Math.Cos(alpha) * Math.Tan(b1));
                 double shift = Math.Asin(Math.Tan(b2) / Math.Tan(beta));
                 double c = Math.Acos(Math.Cos(curr_loc_a) * Math.Cos(delta + bb1));

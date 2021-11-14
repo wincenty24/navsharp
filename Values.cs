@@ -26,9 +26,9 @@ namespace navsharp
         public static double compass = 0;
         public static double tracking_move = 0;
         public static double angle = 0;
-        public static double distance = 0;
+        public static int num_track_line = 0;
         public static bool centerize = true;
-
+        public static bool heading = true;
 
         //arrays
         public static double[] main_points = new double[4];

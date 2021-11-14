@@ -27,7 +27,13 @@ namespace navsharp
 
 
         public List<Lines> mappolyline = new List<Lines>();
-        public bool is_validated = false;
+
+
+        private bool is_validated = false;
+        public bool is_working = false;
+
+
+
         MapPolyline poly = new MapPolyline();
 
         //private
@@ -47,6 +53,14 @@ namespace navsharp
         {
             this.map = map;
             
+        }
+        public void stop()
+        {
+            is_validated = false;
+        }
+        public bool IsValidated()
+        {
+            return is_validated;
         }
         public double[] invoke_main_fun()
         {
@@ -196,14 +210,14 @@ namespace navsharp
             ///Debug.WriteLine($"{main_points[0]} {main_points[1]} {main_points[2]} {main_points[3]}");
 
             //timer.Start();
-            /*
+            
             map.Children.Add(pin_curloc);
             map.Children.Add(pin_loc);
             map.Children.Add(pin1);
             map.Children.Add(pin2);
             
             map.Children.Add(poly);
-            */
+            
             //draw_main_line();
             add_lines();
             //draw_route();
@@ -271,11 +285,14 @@ namespace navsharp
                 double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
                 double degree = (direction == Values.Direction.growing) ? 0 : Math.PI;
                 double top_a = current_a + multiplicator * Math_Formulas.calculate_radian_using_radius_and_length(ahead * earth_radius, earth_radius);
-                double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, -num_of_line * shift, earth_radius);
-                Location loc = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(b[0]));
+                Debug.WriteLine($"line:{num_of_line}");
+                double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, num_of_line * shift, earth_radius);
+                double ret_b = (value_for_vertical_fun.reference_b < current_b) ? b[0] : b[1];
+                
+                Location loc = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(ret_b));
                 pin1.Location = loc;
                 target_points[0] = top_a;
-                target_points[1] = b[0];
+                target_points[1] = ret_b;
                 target_points[2] = multiplicator;
                 target_points[3] = ahead;
                 target_points[4] = degree;

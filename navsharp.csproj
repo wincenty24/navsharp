@@ -115,6 +115,7 @@
     <Compile Include="Controller.cs" />
     <Compile Include="FakeCoordinates.cs" />
     <Compile Include="Lines.cs" />
+    <Compile Include="Saver_reader.cs" />
     <Compile Include="SerialBoss.cs" />
     <Compile Include="Slayer.cs" />
     <Compile Include="SteeringVehicle.cs" />
