@@ -53,7 +53,7 @@ namespace navsharp
             double a2 = main_points[2];
             double b2 = main_points[3];
             double delta = b2 - b1;
-            Debug.WriteLine($"data {delta}");
+           // Debug.WriteLine($"data {delta}");
             double val1 = Math.Tan(a1) / Math.Tan(a2);
             double val2 = (1 / (val1 * Math.Sin(delta))) - (Math.Cos(delta) / Math.Sin(delta));
             double result = (Math.PI / 2) - Math.Atan(val2);
@@ -462,6 +462,18 @@ namespace navsharp
         {
             return dist / radius;
         }
+         public static double prepare_wheel_angle(double angle, double top, double down)
+         {
+            if(angle > top)
+            {
+                return top;
+            }
+            else if (angle < down)
+            {
+                return down;
+            }
 
+            return angle;
+         }
     }
 }

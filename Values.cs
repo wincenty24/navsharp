@@ -46,7 +46,7 @@ namespace navsharp
             decreasing = 1,
             vertical = 2,//pionowe
             perpendicular = 3,//perpendicular
-
+            NULL = 4,
         }
         public struct Value_For_Vertical_Fun
         {
@@ -60,7 +60,6 @@ namespace navsharp
         };
         public struct Value_For_Rise_Fun
         {
-            public double validated_function;
             public double alpha;
             public double beta;
             public double delta;
@@ -70,6 +69,15 @@ namespace navsharp
             public double alpha;
             public double beta;
             public double b_length;
+        };
+        
+        public struct value2return
+        {
+            double distance;
+            double line;
+            Direction dir;
+
+
         };
     }
 }

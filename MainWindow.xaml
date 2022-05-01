@@ -53,13 +53,17 @@
         <TabControl SelectionChanged="TabControl_SelectionChanged" Grid.ColumnSpan="2">
             <TabItem Header="Map">
                 <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="57*"/>
+                        <ColumnDefinition Width="1481*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.Background>
                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop Color="#FF784747" Offset="0"/>
                             <GradientStop Color="#FF7A83E2" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
-                    <Grid x:Name="menu_grid" HorizontalAlignment="Left" Width="200">
+                    <Grid x:Name="menu_grid" HorizontalAlignment="Left" Width="200" Grid.ColumnSpan="2">
                         <Grid Margin="0,0,0,731">
                             <DockPanel >
                                 <Button Visibility="Hidden" x:Name="expand_menu_button" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="expand_menu_button_Click" Height="50" Width="62">
@@ -72,7 +76,7 @@
                                     <materialDesign:PackIcon Kind="OpenInApp" />
 
                                 </Button>
-                                <Button  x:Name="close_menu_button"  Click="close_menu_button_Click" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="53" Height="35">
+                                <Button Visibility="Hidden" x:Name="close_menu_button"  Click="close_menu_button_Click" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="53" Height="35">
                                     <Button.Background>
                                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                             <GradientStop Color="Black" Offset="0"/>
@@ -106,20 +110,20 @@
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0" x:Name="new_points_button" Click="new_points_button_Click" Content="NEW" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
-                                <Button Grid.Column="1" x:Name="read_fie_button" IsEnabled="False" Height="30" Width="80" Click="read_fie_button_Click">
+                                <Button Grid.Column="1" x:Name="read_fie_button" Height="30" Width="80" Click="read_fie_button_Click">
                                     <materialDesign:PackIcon Kind="OpenInNew"/>
                                 </Button>
 
                             </Grid>
                             <Button Grid.Column="0" Grid.Row="1" x:Name="a_point_button" Click="a_point_button_Click" IsEnabled="False" Content="A" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
                             <Button Grid.Column="0" Grid.Row="2" x:Name="b_point_button" Click="b_point_button_Click" IsEnabled="False" Content="B" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
-                            <Button IsEnabled="False" x:Name="start_button" Grid.Column="0" Grid.Row="3" Height="30" Width=" 80" Background="#FF2A8D33" Click="start_button_Click">
+                            <Button IsEnabled="False" x:Name="start_button" Grid.Column="0" Grid.Row="3" Height="30" Width=" 80" Background="#FF197E22" Click="start_button_Click">
                                 <materialDesign:PackIcon Kind="check"/>
                             </Button>
                             <Button IsEnabled="False" x:Name="stop_button" Click="stop_button_Click" Grid.Column="0" Grid.Row="4" Height="30" Width="80" Background="#FF660909">
                                 <materialDesign:PackIcon Kind="StopAlert"/>
                             </Button>
-                            <Button IsEnabled="False"  x:Name="resume_button" Click="resume_button_Click" Grid.Column="0" Grid.Row="5" Height="30" Width="80">
+                            <Button IsEnabled="False"  x:Name="resume_button" Click="resume_button_Click" Grid.Column="0" Grid.Row="5" Height="30" Width="80" Background="#FF75C159">
                                 <materialDesign:PackIcon Kind="ReloadAlert"/>
                             </Button>
                             <Button x:Name="save_file_button" Click="save_file_button_Click" Grid.Column="0" Grid.Row="6" Height="30" Width="80">
@@ -137,19 +141,19 @@
                                     <RowDefinition/>
                                     <RowDefinition/>
                                 </Grid.RowDefinitions>
-                                <Button x:Name="change_a_plus_button" Height="27" Grid.Column="1" Grid.Row="0" VerticalAlignment="Top" Click="change_a_plus_button_Click">
+                                <Button x:Name="change_a_plus_button" Visibility="Hidden" Height="27" Grid.Column="1" Grid.Row="0" VerticalAlignment="Top" Click="change_a_plus_button_Click">
                                     <materialDesign:PackIcon Kind="ArrowTop" />
                                 </Button>
-                                <Button x:Name="change_a_minus_button" Height="27" Grid.Column="1" Grid.Row="2" Click="change_a_minus_button_Click">
+                                <Button x:Name="change_a_minus_button" Visibility="Hidden" Height="27" Grid.Column="1" Grid.Row="2" Click="change_a_minus_button_Click">
                                     <materialDesign:PackIcon Kind="ArrowDown"/>
                                 </Button>
-                                <Button x:Name="change_b_minus_button" Height="27" Grid.Column="0" Grid.Row="1" Click="change_b_minus_button_Click">
+                                <Button x:Name="change_b_minus_button" Visibility="Hidden" Height="27" Grid.Column="0" Grid.Row="1" Click="change_b_minus_button_Click">
                                     <materialDesign:PackIcon Kind="ArrowLeft"/>
                                 </Button>
-                                <Button x:Name="change_b_plus_button" Click="change_b_plus_button_Click" Height="27" Grid.Column="2" Grid.Row="1">
+                                <Button x:Name="change_b_plus_button" Visibility="Hidden" Click="change_b_plus_button_Click" Height="27" Grid.Column="2" Grid.Row="1">
                                     <materialDesign:PackIcon Kind="ArrowRight"/>
                                 </Button>
-                                <ToggleButton IsChecked="True" x:Name="choose_point_to_change_val_button" ToggleButton.Checked="choose_point_to_change_val_button_Checked" ToggleButton.Unchecked="choose_point_to_change_val_button_Unchecked" FontSize="20" Content="A" Height="27" Grid.Column="1" Grid.Row="1" >
+                                <ToggleButton IsChecked="True" Visibility="Hidden" x:Name="choose_point_to_change_val_button" ToggleButton.Checked="choose_point_to_change_val_button_Checked" ToggleButton.Unchecked="choose_point_to_change_val_button_Unchecked" FontSize="20" Content="A" Height="27" Grid.Column="1" Grid.Row="1" >
 
                                 </ToggleButton>
                             </Grid>
@@ -170,7 +174,7 @@
                                     <materialDesign:PackIcon Kind="ZoomOut"/>
                                 </Button>
                                 <ToggleButton x:Name="centerize_togglebutton" IsChecked="True" ToggleButton.Unchecked="centerize_togglebutton_Unchecked" ToggleButton.Checked="centerize_togglebutton_Checked" Grid.Column="1" Grid.Row="1" Height="41" Width="67">
-                                    
+
                                 </ToggleButton>
 
                             </Grid>
@@ -181,47 +185,61 @@
 
                     </Grid>
 
-                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="725" Width="1330"/>
-                    <Button Content="angle +" x:Name="angle_plus" Width="75" Height="34" Margin="1017,2,446,747" Click="angle_plus_Click"/>
-                    <Button Content="angle -" x:Name="angle_minus"  HorizontalAlignment="Left" Margin="1463,10,0,0" VerticalAlignment="Top" Width="75" Height="34" Click="angle_minus_Click"/>
-                    <TextBlock x:Name="arrow_left" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="667,0,821,0"><InlineUIContainer>
+                    <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="725" Width="1330" Grid.Column="1"/>
+                    <Button Content="angle +" Visibility="Hidden" x:Name="angle_plus" Width="75" Height="34" Margin="1396,10,10,737" Click="angle_plus_Click" Grid.Column="1"/>
+                    <TextBlock x:Name="arrow_left" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="610,0,821,0" Grid.Column="1"><InlineUIContainer>
                             <materialDesign:PackIcon Kind="ArrowRightBoldCircle" Height="43" Width="50"/>
                         </InlineUIContainer></TextBlock>
-                    <TextBlock x:Name="distance_textblock" TextAlignment="Center" FontSize="20" TextWrapping="Wrap" Text="---" Margin="727,0,731,747" RenderTransformOrigin="0.5,0.5"/>
-                    <TextBlock x:Name="arrow_right" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="812,0,676,0"><InlineUIContainer>
+                    <TextBlock x:Name="distance_textblock" TextAlignment="Center" FontSize="20" TextWrapping="Wrap" Text="---" Margin="670,0,731,747" RenderTransformOrigin="0.5,0.5" Grid.Column="1"/>
+                    <TextBlock x:Name="arrow_right" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="755,0,676,0" Grid.Column="1"><InlineUIContainer>
                         <materialDesign:PackIcon Kind="ArrowLeftBoldCircle" Height="43" Width="50"/>
                         </InlineUIContainer></TextBlock>
-                       </Grid>
+                </Grid>
             </TabItem>
-            <TabItem Header="Serrings">
-                <Grid>
-                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="0,10,0,0" TextWrapping="Wrap" Text="Weight:" VerticalAlignment="Top" Height="30" Width="72"/>
-                    <TextBox x:Name="weight_textbox" FontSize="20" HorizontalAlignment="Left" Height="34" Margin="77,6,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="95" RenderTransformOrigin="0.5,0.211"/>
-                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Machine's length:" Margin="0,60,1366.4,686.8"/>
-                    <TextBox x:Name="length_textbox" FontSize="20" TextWrapping="Wrap" Text="TextBox" Margin="162,56,1260,691"/>
-                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Controller port:" Margin="842,10,527,727"/>
-                    <Button x:Name="choose_controller_port" Click="choose_controller_port_Click" FontSize="20" Content="Choose" Margin="842,229,596.4,503.8"/>
-                    <ListBox x:Name="controller_port" MouseDoubleClick="controller_port_MouseDoubleClick" FontSize="15" Margin="842,85,446.4,571.8"/>
-                    <Button x:Name="Refresh_com_port" Click="Refresh_com_port_Click" FontSize="20" Content="Refresh" HorizontalAlignment="Left" Margin="1428,7,0,725.8"  Width="100"/>
-                    <TextBlock x:Name="Controller_port_name_textblock" Height="30" FontSize="20" TextWrapping="Wrap" Text="" Width="100" Margin="846,45,592,706"/>
+            <TabItem Header="Settings">
+                <Grid Margin="1,0,-1,0" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="21*"/>
+                        <ColumnDefinition Width="1517*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#FF784747" Offset="0"/>
+                            <GradientStop Color="#FF7A83E2" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+
+                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="0,10,0,0" TextWrapping="Wrap" Text="Width:" VerticalAlignment="Top" Height="30" Width="72" Grid.ColumnSpan="2"/>
+                    <TextBox x:Name="weight_textbox" FontSize="20" HorizontalAlignment="Left" Height="34" Margin="56,6,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="95" RenderTransformOrigin="0.5,0.211" Grid.Column="1"/>
+                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Machine's length:" Margin="0,60,1366,686" Grid.ColumnSpan="2"/>
+                    <TextBox Height="34" x:Name="length_textbox" FontSize="20" TextWrapping="Wrap" Text="TextBox" Margin="140,56,1261,691" Grid.Column="1"/>
+                    <TextBlock FontSize="20" TextWrapping="Wrap" Text="Controller port:" Margin="821,10,527,727" Grid.Column="1"/>
+                    <Button Height="Auto" x:Name="choose_controller_port" Click="choose_controller_port_Click" Background="#FF5C4566" Margin="821,245,615,461" Grid.Column="1">
+                        <materialDesign:PackIcon Kind="Connection"/>
+                    </Button>
+                    <ListBox x:Name="controller_port" MouseDoubleClick="controller_port_MouseDoubleClick" FontSize="20" Margin="821,85,446,572" Grid.Column="1"/>
+                    <Button x:Name="Refresh_com_port" Click="Refresh_com_port_Click"  HorizontalAlignment="Left" Margin="1375,10,0,727"  Width="100" Background="#FF140F7A" Height="Auto" Grid.Column="1">
+                        <materialDesign:PackIcon Kind="Refresh"/>
+                    </Button>
+                    <TextBlock x:Name="Controller_port_name_textblock" Height="30" FontSize="20" TextWrapping="Wrap" Text="" Width="100" Margin="825,45,592,706" Grid.Column="1"/>
 
 
-                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="1172,10,0,0" TextWrapping="Wrap" Text="Satellite module port:" VerticalAlignment="Top"/>
-                    <TextBlock x:Name="Satelite_port_name_textblock" FontSize="20" HorizontalAlignment="Left" Margin="1172,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text=""/></TextBlock>
+                    <TextBlock FontSize="20" HorizontalAlignment="Left" Margin="1151,10,0,0" TextWrapping="Wrap" Text="Satellite module port:" VerticalAlignment="Top" Grid.Column="1"/>
+                    <TextBlock x:Name="Satelite_port_name_textblock" FontSize="20" HorizontalAlignment="Left" Margin="1151,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Grid.Column="1"><Run Text=""/></TextBlock>
 
-                    <Button x:Name="Choose_satelites_port" Click="Choose_satelites_port_Click" FontSize="20" Content="Choose" Margin="1172,229,266.4,503.8"/>
-                    <ListBox FontSize="20" x:Name="satelite_port" MouseDoubleClick="satelite_port_MouseDoubleClick" Margin="1172,85,120.4,571.8"/>
-                    <Button x:Name="save_button" Content="Save" Margin="40,395,1401,354" Click="save_button_Click"/>
-                    <TextBox x:Name="look_ahead_textbox" Height="35" FontSize="20" HorizontalAlignment="Left" Margin="107,106,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" TextChanged="look_ahead_textbox_TextChanged"/>
-                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,110,0,0" TextWrapping="Wrap" Text="Look ahead" VerticalAlignment="Top"/>
-                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,160,0,0" TextWrapping="Wrap" Text="Lines to draw" VerticalAlignment="Top"/>
-                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,210,0,0" TextWrapping="Wrap" Text="Look ahead to lines" VerticalAlignment="Top"/>
-                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,260,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
-                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,310,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
-                    <TextBox x:Name="lines_to_draw_textbox" FontSize="20" HorizontalAlignment="Left" Height="35" Margin="127,156,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-                    <TextBox x:Name="look_ahead_to_lines_textbox" FontSize="20" HorizontalAlignment="Left" Height="31" Margin="176,209,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-                    <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,260,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-                    <TextBox FontSize="20" HorizontalAlignment="Left" Height="35" Margin="87,310,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                    <Button Height="Auto" x:Name="Choose_satelites_port" Click="Choose_satelites_port_Click"  Margin="1151,245,286,461" Background="#FF236499" Grid.Column="1">
+                        <materialDesign:PackIcon Kind="Connection"/>
+                    </Button>
+                    <ListBox FontSize="20" x:Name="satelite_port" MouseDoubleClick="satelite_port_MouseDoubleClick" Margin="1151,85,120,572" Grid.Column="1"/>
+                    <Button Height="Auto" x:Name="save_button" Click="save_button_Click" Margin="0,285,1436,421" Background="#FF6289A8" Grid.Column="1" >
+                        <materialDesign:PackIcon Kind="ContentSave"/>
+                    </Button>
+                    <TextBox x:Name="look_ahead_textbox" Height="35" FontSize="20" HorizontalAlignment="Left" Margin="86,106,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" TextChanged="look_ahead_textbox_TextChanged" Grid.Column="1"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,110,0,0" TextWrapping="Wrap" Text="Look ahead" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,160,0,0" TextWrapping="Wrap" Text="Lines to draw" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <TextBlock Height="30" FontSize="20" HorizontalAlignment="Left" Margin="0,210,0,0" TextWrapping="Wrap" Text="Look ahead to lines" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <TextBox x:Name="lines_to_draw_textbox" FontSize="20" HorizontalAlignment="Left" Height="35" Margin="106,156,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" Grid.Column="1"/>
+                    <TextBox x:Name="look_ahead_to_lines_textbox" FontSize="20" HorizontalAlignment="Left" Height="31" Margin="155,209,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" Grid.Column="1"/>
                 </Grid>
 
             </TabItem>

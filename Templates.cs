@@ -88,13 +88,8 @@ namespace navsharp
             double a2 = points[2];
             double b2 = points[3];
 
-            if ((b1 < b2) && (a1 != a2))//to można usunąć
+            if ((b1 > b2) && (a1 != a2))
             {
-                Debug.WriteLine("1");
-            }
-            else if ((b1 > b2) && (a1 != a2))
-            {
-                Debug.WriteLine("2");
                 points[0] = a2;
                 points[1] = b2;
                 points[2] = a1;
@@ -110,48 +105,42 @@ namespace navsharp
                  * |
                  * |
                  * |
-                 * |
-                 * |
                  * | a1
                  */
             }
             else if ( (a1 == a2) && (b1 > b2))
             {
-
                 points[1] = b2;
                 points[3] = b1;
                 /*
-                 * b1---------------------b2
+                 * b1----------------b2
                  */
-
             }
         }
-        public static int validate_template(double[] points)
+        public static Values.Function validate_template(double[] points)
         {
             double a1 = points[0];
             double b1 = points[1];
             double a2 = points[2];
             double b2 = points[3];
+
             if ((a1 < a2) && (b1 != b2))
             {
-                Debug.WriteLine("1");
-                return 0;
+                return Values.Function.growing;
             }
             else if ((a1 > a2) && (b1 != b2))
             {
-                Debug.WriteLine("2");
-                return 1;
+                return Values.Function.decreasing;
             }
             else if ((a1 != a2) && (b1 == b2))
             {
-                Debug.WriteLine("3");
-                return 2;
+                return Values.Function.vertical;
             }
             else if ((a1 == a2) && (b1 < b2))
             {
-                return 3;
+                return Values.Function.perpendicular;
             }
-            return 4;
+            return Values.Function.NULL;
         }
         public static double template_for_growing(double b,double b1) {
             double wynik = 0;
@@ -173,11 +162,11 @@ namespace navsharp
         {
             if (function == Values.Function.growing)
             {
-                if (current_degree >= Math_Formulas.prepare_degree_for_compass(-ref_degree) || current_degree <= Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
+                if (current_degree >= Math_Formulas.prepare_degree_for_compass(ref_degree - Math.PI / 2) || current_degree <= Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
                 {
                     return Values.Direction.growing;
                 }
-                else if (current_degree < Math_Formulas.prepare_degree_for_compass(-ref_degree) && current_degree > Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
+                else if (current_degree < Math_Formulas.prepare_degree_for_compass(ref_degree - Math.PI / 2) && current_degree > Math.PI / 2 + Math_Formulas.prepare_degree_for_compass(ref_degree))
                 {
                     return Values.Direction.decreasing;
                 }

@@ -29,14 +29,30 @@ namespace navsharp
                     return "";
                 }
             }
-            return "";
         }
-        public static void read(ref List<LocationCollection> list_of_loc_coll, ref double[] main_points, string file_namee, ref int num_of_loc_coll)
+        private static string savefiledialog()
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.InitialDirectory = "c:\\";
+                saveFileDialog.RestoreDirectory = true;
+
+                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string filePath = saveFileDialog.FileName;
+                    return filePath;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        }
+        public static void read(ref List<LocationCollection> list_of_loc_coll, ref double[] main_points, ref int num_of_loc_coll)
         {
             try
             {
                 string file_name = openfiledialog();
-                Debug.WriteLine($"file_name |{file_name}|");
                 if(file_name != null || file_name != "") 
                 {
                     string[] all_lines = File.ReadAllLines(file_name);
@@ -59,7 +75,6 @@ namespace navsharp
                         {
                             double lon = Convert.ToDouble(check_type[1].Replace(".", ","));
                             double lat = Convert.ToDouble(check_type[2].Replace(".", ","));
-                            Debug.WriteLine($"{lon} {lat}");
                             list_of_loc_coll[num_of_loc_coll - 1].Add(new Location(lon, lat));
                         }
                     }
@@ -70,10 +85,11 @@ namespace navsharp
                 System.Windows.MessageBox.Show($"Saver_reader-read:{e.ToString()}");
             }
         }
-        public static void save(List<LocationCollection> list_of_loc_coll, double[] main_points, string file_name)
+        public static void save(List<LocationCollection> list_of_loc_coll, double[] main_points)
         {
             try
             {
+                string file_name = savefiledialog();
                 using (StreamWriter text = new StreamWriter(file_name))
                 {
                     text.WriteLine($"points {prepare_double_to_string(main_points)}");
@@ -89,9 +105,9 @@ namespace navsharp
                     text.WriteLine($"finish");
                 }
             }
-            catch
+            catch(Exception e)
             {
-
+                System.Windows.MessageBox.Show($"Saver_reader-read:{e.ToString()}");
             }
         }
         private static string prepare_location_to_string(Location loc)

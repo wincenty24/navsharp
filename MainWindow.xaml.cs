@@ -44,6 +44,9 @@ namespace navsharp
         Pushpin a_pin = new Pushpin();
         Pushpin b_pin = new Pushpin();
 
+        bool is_sent = false;
+        bool is_working = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,51 +59,54 @@ namespace navsharp
         }
         private void draw_trace()
         {
+            //Debug.WriteLine($"list_location_collection:{list_location_collection.Count} Values.num_track_line:{Values.num_track_line}");
             list_location_collection[Values.num_track_line].Add(new Location(Math_Formulas.radian_to_degree(Values.current_point[0]), Math_Formulas.radian_to_degree(Values.current_point[1])));
             list_MapPolyline[Values.num_track_line].Locations = list_location_collection[Values.num_track_line];
         }
         private void main_fun()
         {
-;            if (slayer !=null && slayer.IsValidated() && slayer.is_working)
+            if (slayer != null)
             {
-
-                double[] dist = slayer.invoke_main_fun();
-
-                // slayer.calculate_angle(dist[0], l, slider2.Value);
-                if (dist[0] > 0)
+                if ( slayer.IsValidated() && is_working)
                 {
-                    if (dist[2] == 0.0f)
+                    double[] dist = slayer.invoke_main_fun();
+
+                    // slayer.calculate_angle(dist[0], l, slider2.Value);
+                    if (dist[0] > 0)
                     {
-                        arrow_left.Visibility = Visibility.Collapsed;
-                        arrow_right.Visibility = Visibility.Visible;
+                        if (dist[2] == 0.0f)
+                        {
+                            arrow_left.Visibility = Visibility.Collapsed;
+                            arrow_right.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            arrow_left.Visibility = Visibility.Visible;
+                            arrow_right.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    else if (dist[0] < 0)
+                    {
+                        if (dist[2] == 1.0f)
+                        {
+                            arrow_left.Visibility = Visibility.Collapsed;
+                            arrow_right.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            arrow_left.Visibility = Visibility.Visible;
+                            arrow_right.Visibility = Visibility.Collapsed;
+                        }
                     }
                     else
                     {
-                        arrow_left.Visibility = Visibility.Visible;
-                        arrow_right.Visibility = Visibility.Collapsed;
-                    }
-                }
-                else if (dist[0] < 0)
-                {
-                    if (dist[2] == 1.0f)
-                    {
                         arrow_left.Visibility = Visibility.Collapsed;
-                        arrow_right.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        arrow_left.Visibility = Visibility.Visible;
                         arrow_right.Visibility = Visibility.Collapsed;
                     }
-                }
-                else
-                {
-                    arrow_left.Visibility = Visibility.Collapsed;
-                    arrow_right.Visibility = Visibility.Collapsed;
-                }
-                distance_textblock.Text = string.Format("{0:#.0.00}", Math.Abs(dist[0]).ToString());
+                    distance_textblock.Text = string.Format("{0:#.0.00}", Math.Abs(dist[0]).ToString());
 
-                draw_trace();
+                    draw_trace();
+                }
             }
         }
         private void DOIT()//get data from satellite
@@ -127,20 +133,20 @@ namespace navsharp
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            check_availabale_ports();
+            load_ports_automatically();
 
-
-            slayer = new Slayer(main_map);
-            load_values_from_memory();
             timer.Interval = TimeSpan.FromMilliseconds(20);
             timer.Tick += Timer_Tick;
             timer.Start();
             timer_controller.Interval = TimeSpan.FromMilliseconds(50);
             timer_controller.Tick += Timer_controller_Tick;
             timer_controller.Start();
+            main_map.Children.Add(main_pin);
+            load_values_from_memory();
             //assign_start_point_A();
             //assign_start_point_B();
-            main_map.ZoomLevel = 18;
-            main_map.Children.Add(main_pin);
+
 
         }
         /*
@@ -200,9 +206,6 @@ namespace navsharp
             Values.line_distance_m = Convert.ToDouble(Properties.Settings.Default.look_ahead_to_lines_save.ToString());
 
 
-            check_availabale_ports();
-            load_ports_automatically();
-
         }
         private void load_ports_automatically()
         {
@@ -218,7 +221,7 @@ namespace navsharp
             else
             {
                 //controller.set("COM4", 9600);
-                //sb.set("COM3", 9600);
+               // sb.set("COM3", 9600);
 
                 System.Windows.MessageBox.Show("Can't connect with a ports!");
             }
@@ -248,8 +251,8 @@ namespace navsharp
             // || 51.208477 17.312763
             // / 51.238247, 17.375997
             // \ 51.230939, 17.361992
-            double as1 = Math_Formulas.degree_to_radian(51.208477);
-            double bs1 = Math_Formulas.degree_to_radian(17.312763);
+            double as1 = Values.current_point[0];//Math_Formulas.degree_to_radian(51.208477);
+            double bs1 = Values.current_point[1];//Math_Formulas.degree_to_radian(17.312763);
             //main_map.Center = new Location(Math_Formulas.radian_to_degree(as1), Math_Formulas.radian_to_degree(bs1));
             //51,225702, 17,372333
             //double as1 = math.degree_to_radian(51.141572);
@@ -263,16 +266,16 @@ namespace navsharp
             // || 51.205802 17.312763
             // / 51.240987, 17.379715
             // \ 51.230131, 17.362590
-            double as2 = Math_Formulas.degree_to_radian(51.205802);
-            double bs2 = Math_Formulas.degree_to_radian(17.312763);
+            double as2 = Values.current_point[0];//Math_Formulas.degree_to_radian(51.205802);
+            double bs2 = Values.current_point[1];//Math_Formulas.degree_to_radian(17.312763);
             Values.main_points[2] = as2;
             Values.main_points[3] = bs2;
 
             
             
           
-            Values.current_point[0] = Values.main_points[0];
-            Values.current_point[1] = Values.main_points[1];
+            //Values.current_point[0] = Values.main_points[0];
+            //Values.current_point[1] = Values.main_points[1];
             //prepare_fake_coordinates();
         }
 
@@ -281,11 +284,12 @@ namespace navsharp
             
             if (controller.is_port_open())
             {
-
-                string data = ((int)(Math_Formulas.radian_to_degree(Values.angle))).ToString().Replace(",", ".");
-
-                Debug.WriteLine($"data: {data}");
-                controller.send(data);
+                double angle = Math_Formulas.prepare_wheel_angle(Values.angle, 50, -50);
+                
+                string data = ((int)(Math_Formulas.radian_to_degree(angle))).ToString().Replace(",", ".");
+                int work = is_working ? 1 : 0;
+                //Debug.WriteLine($"data: {data} {work}");
+                controller.send($"{data} {work}");
                 //controller.send(((-10)* Math.Round(Math_Formulas.radian_to_degree(Values.distance)),2).ToString().Replace(",", ".").Replace("(", "").Replace(")", "").Replace(" ", ""));
             }
             
@@ -333,6 +337,10 @@ namespace navsharp
         {
 
             prepare_fake_coordinates();
+            if (angle_plus.Visibility != Visibility.Hidden)
+            {
+                angle_plus.Visibility = Visibility.Hidden;
+            }
         }
         private void prepare_fake_coordinates()
         {
@@ -388,9 +396,10 @@ namespace navsharp
 
         private void choose_controller_port_Click(object sender, RoutedEventArgs e)
         {
-            Controller_port_name_textblock.Text = controller_port.SelectedItem.ToString();
+           
             try
             {
+                Controller_port_name_textblock.Text = controller_port.SelectedItem.ToString();
                 controller.set(Controller_port_name_textblock.Text, 9600);
             }
             catch
@@ -401,9 +410,9 @@ namespace navsharp
 
         private void Choose_satelites_port_Click(object sender, RoutedEventArgs e)
         {
-            Satelite_port_name_textblock.Text = satelite_port.SelectedItem.ToString();
             try
             {
+                Satelite_port_name_textblock.Text = satelite_port.SelectedItem.ToString();
                 sb.set(Satelite_port_name_textblock.Text, 9600);
             }
             catch
@@ -437,13 +446,35 @@ namespace navsharp
 
         private void new_points_button_Click(object sender, RoutedEventArgs e)
         {
+            //angle_plus.Visibility = Visibility.Visible;
             asnc_message();
-           
+            resume_button.IsEnabled = false;
+            stop_button.IsEnabled = false;
+            is_sent = true;
         }
-        private async void asnc_message()
+        private void new_obj()
+        {
+            is_working = false;
+            Values.num_track_line = 0;
+            main_map.Children.Clear();
+            list_MapPolyline.Clear();
+            list_location_collection.Clear();
+            load_values_from_memory();
+            main_map.ZoomLevel = 18;
+            main_map.Children.Add(main_pin);
+            slayer = new Slayer(main_map);
+        }
+        private void asnc_message()
         {
             if(System.Windows.MessageBox.Show("Would you like to create new line?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
             {
+
+                new_obj();
+                if (!is_sent)
+                {
+                    prepare_fake_coordinates();
+                    is_sent = true;
+                }
                 a_point_button.IsEnabled = true;
             }
             else
@@ -533,7 +564,6 @@ namespace navsharp
         {
            
             //start_button.Visibility = Visibility.Hidden;
-            a_point_button.Visibility = Visibility.Hidden;
             change_a_plus_button.Visibility = Visibility.Hidden;
             change_a_minus_button.Visibility = Visibility.Hidden;
             change_b_minus_button.Visibility = Visibility.Hidden;
@@ -565,8 +595,9 @@ namespace navsharp
             {
                 centerize_togglebutton.IsEnabled = true;
             }
+            
             slayer.validation(Values.current_point);
-            slayer.is_working = true;
+            is_working = true;
             start_button.IsEnabled = false;
             stop_button.IsEnabled = true;
             Lines.add_mappolyline(main_map, 0, ref list_location_collection, ref list_MapPolyline);
@@ -643,9 +674,10 @@ namespace navsharp
 
         private void stop_button_Click(object sender, RoutedEventArgs e)
         {
-            slayer.is_working = false;
+            is_working = false;
             resume_button.IsEnabled = true;
             stop_button.IsEnabled = false;
+            
         }
 
         private void resume_button_Click(object sender, RoutedEventArgs e)
@@ -654,9 +686,10 @@ namespace navsharp
             //list_MapPolyline.Add(new MapPolyline());
             Values.num_track_line++;
             //add_mappolyline(Values.num_track_line);
+            Debug.WriteLine($"list_MapPolyline:{list_MapPolyline.Count}  Values.num_track_line:{ Values.num_track_line}");
             Lines.add_mappolyline(main_map, Values.num_track_line, ref list_location_collection, ref list_MapPolyline);
             //main_map.Children.Add(list_MapPolyline[Values.num_track_line]);
-            slayer.is_working = true;
+            is_working = true;
 
             resume_button.IsEnabled = false;
             stop_button.IsEnabled = true;
@@ -681,19 +714,43 @@ namespace navsharp
 
         private void save_file_button_Click(object sender, RoutedEventArgs e)
         {
-            Saver_reader.read(ref list_location_collection, ref Values.main_points, "dupa.txt", ref Values.num_track_line);
-            for (int i = 0; i < Values.num_track_line; i++)
-            {
-                Lines.add_mappolyline(main_map, i, ref list_MapPolyline);
-                list_MapPolyline[i].Locations = list_location_collection[i];
-
-            }
-
+            Saver_reader.save(list_location_collection, Values.main_points);
         }
 
         private void read_fie_button_Click(object sender, RoutedEventArgs e)
         {
-            Saver_reader.save(list_location_collection, Values.main_points, "dupa.txt");
+            //angle_plus.Visibility = Visibility.Visible;
+            if (System.Windows.MessageBox.Show("Would you like to read points?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+            {
+                new_obj();
+                if (!is_sent)
+                {
+                    prepare_fake_coordinates();
+                    is_sent = true;
+                }
+                Saver_reader.read(ref list_location_collection, ref Values.main_points, ref Values.num_track_line);
+                Debug.WriteLine($"Values.num_track_line after reading:{Values.num_track_line} {list_MapPolyline.Count}");
+                for (int i = 0; i < Values.num_track_line; i++)
+                {
+                    Lines.add_mappolyline(main_map, i, ref list_MapPolyline);
+                    list_MapPolyline[i].Locations = list_location_collection[i];
+                }
+                Values.num_track_line--;
+                Debug.WriteLine($"Values.num_track_line after creating new polyline:{Values.num_track_line} {list_MapPolyline.Count}");
+                resume_button.IsEnabled = true;
+                slayer.validation(Values.current_point);
+               
+            }
+            else
+            {
+             
+            }
+            
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+
         }
 
     }

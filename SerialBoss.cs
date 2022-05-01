@@ -66,6 +66,7 @@ namespace navsharp
         }
         public void send(string msg)
         {
+           
             serialPort.WriteLine(msg);
             reader = new Thread(read);
             reader.IsBackground = true;

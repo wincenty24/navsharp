@@ -13,7 +13,6 @@ namespace navsharp
 {
     class Slayer
     {
-        DispatcherTimer timer = new DispatcherTimer();
 
 
         Lines main_line;
@@ -27,17 +26,11 @@ namespace navsharp
 
 
         public List<Lines> mappolyline = new List<Lines>();
-
-
-        private bool is_validated = false;
-        public bool is_working = false;
-
-
-
         MapPolyline poly = new MapPolyline();
 
         //private
         private Map map;
+        private bool is_validated = false;
         private bool is_main_line = false;
         private double last_position_b = 0;
         private double last_position_a = 0;
@@ -71,10 +64,9 @@ namespace navsharp
                 double real_distance_m = real_distance[3] * (Values.earth_radius_m + Values.asl);
                 double dist = preapre_distance(real_distance_m);
                 int line = change_line_color(real_distance_m, Values.shif_m);
-                //Debug.WriteLine($"{dist} {real_distance_m}");
                 steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-                add_pin(real_distance[0], real_distance[1], pin_loc, map);
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
+                //add_pin(real_distance[0], real_distance[1], pin_loc, map);
+                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
                 double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
                 double[] ret = { dist, line, dir};
                 return ret;
@@ -88,8 +80,8 @@ namespace navsharp
                 int line = change_line_color(real_distance_m, Values.shif_m);
                 double dist = preapre_distance(real_distance_m);
                 steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-                add_pin(real_distance[0], real_distance[1], pin_loc, map);
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
+                //add_pin(real_distance[0], real_distance[1], pin_loc, map);
+                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
                 //Debug.WriteLine($"asd {dist}       {real_distance_m}");
                 double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
                 double[] ret = { dist, line, dir };
@@ -106,8 +98,8 @@ namespace navsharp
                 int line = change_line_color(real_distance, Values.shif_m);
                 steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
                 //Debug.WriteLine($"{Math_Formulas.radian_to_degree(dis)} dist:{dist} {real_distance} {dis * earth_radius_m}  ");
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                add_pin(Values.current_point[0], b[0], pin_loc, map);
+                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
+                //add_pin(Values.current_point[0], b[0], pin_loc, map);
                 double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
                 double[] ret = { dist, line, dir };
                 return ret;
@@ -122,8 +114,8 @@ namespace navsharp
                 int line = change_line_color(distance_m, Values.shif_m);
                 steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
 
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                add_pin(value_for_perpendicular_fun.reference_a, Values.current_point[1], pin_loc, map);
+                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
+                //add_pin(value_for_perpendicular_fun.reference_a, Values.current_point[1], pin_loc, map);
                 double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
                 double[] ret = { dist, line, dir };
                 return ret;
@@ -168,14 +160,14 @@ namespace navsharp
         public void validation( double[] cur_points)
         {
             Templates.validate_points(ref Values.main_points);
-            int fun = Templates.validate_template(Values.main_points);
-            //Debug.WriteLine($"funnnnn {fun}");
-            function = (Values.Function)Enum.Parse(typeof(Values.Function), fun.ToString());
-
+            // int fun = Templates.validate_template(Values.main_points);
+            //function = (Values.Function)Enum.Parse(typeof(Values.Function), fun.ToString());
+            function = Templates.validate_template(Values.main_points);
+            Debug.WriteLine($"function {function}");
             last_position_a = cur_points[0];
             last_position_b = cur_points[1];
 
-            if (fun != 4)
+            if (function != Values.Function.NULL)
             {
 
                 //Debug.WriteLine(function.ToString());
@@ -211,12 +203,12 @@ namespace navsharp
 
             //timer.Start();
             
-            map.Children.Add(pin_curloc);
-            map.Children.Add(pin_loc);
-            map.Children.Add(pin1);
-            map.Children.Add(pin2);
+            //map.Children.Add(pin_curloc);
+            //map.Children.Add(pin_loc);
+            //map.Children.Add(pin1);
+            //map.Children.Add(pin2);
             
-            map.Children.Add(poly);
+            //map.Children.Add(poly);
             
             //draw_main_line();
             add_lines();

@@ -44,6 +44,7 @@ namespace navsharp
         {
             list_of_loc_coll.Add(new LocationCollection()); 
             list_MapPolyline.Add(new MapPolyline());
+            Debug.WriteLine($"list_MapPolyline: {list_MapPolyline.Count} num_pol:{num_pol}");
             list_MapPolyline[num_pol].Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
             list_MapPolyline[num_pol].StrokeThickness = 5;
             list_MapPolyline[num_pol].Opacity = 1;
