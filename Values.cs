@@ -9,9 +9,8 @@ namespace navsharp
     public static class Values
     {
         //const
-        public const double earth_radius_km = 6371.0;
-        public const double earth_radius_m = 6371000;
-        public const double earth_radius_cm = 637100000;
+        public const double earth_radius_km = 6378.137;
+        public const double earth_radius_m = 6378137;
 
         //values for users
         public static double shif_m = 3.0;
@@ -21,7 +20,7 @@ namespace navsharp
         public static double machine_length = 3.0;
 
 
-        public static double asl = 0;//abve sea level
+        public static double asl = 160;//abve sea level
         public static double object_azimute_degree = 0.0;
         public static double compass = 0;
         public static double tracking_move = 0;
@@ -32,13 +31,14 @@ namespace navsharp
 
         //arrays
         public static double[] main_points = new double[4];
-        public static double[] current_point = { Math_Formulas.degree_to_radian(51.205802), Math_Formulas.degree_to_radian(17.312763) };// new double[2];
+        public static double[] current_point = { Math_Formulas.degree_to_radian(51.203977), Math_Formulas.degree_to_radian(17.312763) };// new double[2];
         
 
         public enum Direction
         {
             growing = 0,
             decreasing = 1,
+            NULL = 2,
         }
         public enum Function
        {
@@ -73,11 +73,10 @@ namespace navsharp
         
         public struct value2return
         {
-            double distance;
-            double line;
-            Direction dir;
-
-
+            public double distance;
+            public int line;
+            public Direction dir;
+            public double angle;
         };
     }
 }

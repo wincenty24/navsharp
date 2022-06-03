@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -14,158 +15,109 @@ namespace navsharp
     class Slayer
     {
 
-
         Lines main_line;
-        //public double[] current_point = new double[2];
-        public List<Pushpin> ppoints = new List<Pushpin>();
 
-        public Pushpin pin_curloc = new Pushpin();
-        public Pushpin pin_loc = new Pushpin();
-        public Pushpin pin1 = new Pushpin();
-        public Pushpin pin2 = new Pushpin();
-
-
-        public List<Lines> mappolyline = new List<Lines>();
-        MapPolyline poly = new MapPolyline();
+        private List<Lines> mappolyline = new List<Lines>();
 
         //private
         private Map map;
+        private double saved_shift_m;
+
         private bool is_validated = false;
         private bool is_main_line = false;
-        private double last_position_b = 0;
-        private double last_position_a = 0;
         private int last_line_num = -1;
+
         public Values.Value_For_Rise_Fun value_for_rise_fun;
         private Values.Value_For_Decreasing_Fun value_for_decreasing_fun;
         private Values.Value_For_Vertical_Fun value_for_vertical_fun;
         private Values.Value_For_Perpendicular_Fun value_for_perpendicular_fun;
 
-        Values.Direction direction;
-        Values.Function function;
-        public Slayer(Map map)
+        private Values.Direction direction;
+        private Values.Function function;
+
+        private double[] saved_main_points = new double[4];
+        private double saved_line_distance_m;
+
+        private int line_adder = 10;
+        private int n_line = 10;
+
+        private double line_shift_length_growing = 0;
+        private double line_shift_length_decreasing = 0;
+        private double line_shift_length_vertical = 0;
+        private double line_shift_length_perpendicular= 0;
+
+        public Slayer(Map map, double shift_m)
         {
             this.map = map;
-            
+            this.saved_shift_m = shift_m;
         }
-        public void stop()
-        {
-            is_validated = false;
-        }
+        
         public bool IsValidated()
         {
             return is_validated;
         }
-        public double[] invoke_main_fun()
+       
+        public Values.value2return calculate_distance(in double compass, in double[] current_point)//current_points, compass, shift, look_ahead_m, asl, line_distance_m
         {
+
             if (function == Values.Function.growing)
             {
-                direction = Templates.chceck_direction(function, Values.compass, value_for_rise_fun.beta);
-                double[] real_distance = Math_Formulas.real_shift_growing(Values.current_point[0], Values.current_point[1], value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                direction = Templates.chceck_direction_growing(compass, value_for_rise_fun.beta);
+                double[] real_distance = Math_Formulas.real_shift_growing(current_point[0], current_point[1], value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
                 double real_distance_m = real_distance[3] * (Values.earth_radius_m + Values.asl);
-                double dist = preapre_distance(real_distance_m);
-                int line = change_line_color(real_distance_m, Values.shif_m);
-                steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-                //add_pin(real_distance[0], real_distance[1], pin_loc, map);
-                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
-                double[] ret = { dist, line, dir};
-                return ret;
+                double dist = preapre_distance_growing(real_distance_m, current_point, saved_shift_m);
+                int line = change_line_color_growing(real_distance_m, saved_shift_m, current_point);
+                adding_new_lines_growing(line, saved_shift_m, saved_line_distance_m);
+                
+                double angle = steering_growing(line, real_distance[3], dist, current_point[0], current_point[1], Values.earth_radius_m + Values.asl, compass, Values.look_ahead_m, saved_shift_m);
 
+                return new Values.value2return() { distance = dist, dir = direction, line = line, angle = angle };
             }
+
             else if (function == Values.Function.decreasing)//maleje
             {
-                direction = Templates.chceck_direction(function, Values.compass, value_for_decreasing_fun.beta);
-                double[] real_distance = Math_Formulas.real_shift_decreasing(Values.current_point[0], Values.current_point[1], value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                direction = Templates.chceck_direction_decreasing(compass, value_for_decreasing_fun.beta);
+                double[] real_distance = Math_Formulas.real_shift_decreasing(current_point[0], current_point[1], value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
                 double real_distance_m = real_distance[3] * (Values.earth_radius_m + Values.asl);
-                int line = change_line_color(real_distance_m, Values.shif_m);
-                double dist = preapre_distance(real_distance_m);
-                steering(line, real_distance[3], dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-                //add_pin(real_distance[0], real_distance[1], pin_loc, map);
-                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                //Debug.WriteLine($"asd {dist}       {real_distance_m}");
-                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
-                double[] ret = { dist, line, dir };
-                return ret;
+                int line = change_line_color_decreasing(real_distance_m, saved_shift_m, current_point);
+                double dist = preapre_distance_decreasing(real_distance_m, current_point, saved_shift_m);
+                double angle = steering_decreasing(line, real_distance[3], dist, current_point[0], current_point[1], Values.earth_radius_m + Values.asl, compass, Values.look_ahead_m, saved_shift_m);
+                adding_new_lines_decreasing(line, saved_shift_m, saved_line_distance_m);
+                return new Values.value2return() { distance = dist, dir = direction, line = line, angle = angle };
             }
+
             else if (function == Values.Function.vertical)//pionowe
             {
-                direction = Templates.chceck_direction(function, Values.compass, 0);
-                double dis = Math_Formulas.distance_radian(Values.current_point[0], Values.current_point[0], Values.current_point[1] - value_for_vertical_fun.reference_b);
-                double real_distance = Math_Formulas.real_shift_vertical(Values.current_point[0], Values.current_point[1], value_for_vertical_fun.reference_b, Values.earth_radius_m + Values.asl);
-                double[] b = Math_Formulas.calculate_shift_for_vertical(Values.current_point[0], Values.current_point[1], value_for_vertical_fun.reference_b, dis, Values.earth_radius_m + Values.asl);//sprawdz to
-                //add_pin(Values.current_point[0], value_for_vertical_fun.reference_b, pin_loc3, map);
-                double dist = preapre_distance(real_distance);
-                int line = change_line_color(real_distance, Values.shif_m);
-                steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-                //Debug.WriteLine($"{Math_Formulas.radian_to_degree(dis)} dist:{dist} {real_distance} {dis * earth_radius_m}  ");
-                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                //add_pin(Values.current_point[0], b[0], pin_loc, map);
-                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
-                double[] ret = { dist, line, dir };
-                return ret;
+                direction = Templates.chceck_direction_vertical(compass, 0);
+                double dis = Math_Formulas.distance_radian(current_point[0], current_point[0], current_point[1] - value_for_vertical_fun.reference_b);
+                double real_distance = Math_Formulas.real_shift_vertical(current_point[0], current_point[1], value_for_vertical_fun.reference_b, Values.earth_radius_m + Values.asl);
+                double[] b = Math_Formulas.calculate_shift_for_vertical(current_point[0], current_point[1], value_for_vertical_fun.reference_b, dis, Values.earth_radius_m + Values.asl);//sprawdz to
+                double dist = preapre_distance_vertical(real_distance, current_point, saved_shift_m);
+                int line = change_line_color_vertical(real_distance, saved_shift_m, current_point);
+                double angle = steering_vertical(line, dis, dist, current_point[0], current_point[1], Values.earth_radius_m + Values.asl, compass, Values.look_ahead_m, saved_shift_m);
+                adding_new_lines_vertical(line, saved_shift_m, saved_line_distance_m);
+                return new Values.value2return() { distance = dist, dir = direction, line = line, angle = angle };
             }
+
             else if(function == Values.Function.perpendicular)
             {
-                direction = Templates.chceck_direction(function, Values.compass, 0);
-                double dis = Math_Formulas.distance_radian(value_for_perpendicular_fun.reference_a, Values.current_point[0], Values.current_point[1] - Values.current_point[1]);
+                direction = Templates.chceck_direction_perpendicular(compass, 0);
+                double dis = Math_Formulas.distance_radian(value_for_perpendicular_fun.reference_a, current_point[0], current_point[1] - current_point[1]);
                 double distance_m = dis * (Values.earth_radius_m + Values.asl);
-                double dist = preapre_distance(distance_m);
-                //Debug.WriteLine($"my dis {dist} {dis * earth_radius_m}");
-                int line = change_line_color(distance_m, Values.shif_m);
-                steering(line, dis, dist, Values.current_point[0], Values.current_point[1], Values.earth_radius_m + Values.asl, Values.compass, Values.look_ahead_m, Values.shif_m);
-
-                //add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-                //add_pin(value_for_perpendicular_fun.reference_a, Values.current_point[1], pin_loc, map);
-                double dir = (direction == Values.Direction.growing) ? 0.0f : 1.0f;
-                double[] ret = { dist, line, dir };
-                return ret;
+                double dist = preapre_distance_perpendicular(distance_m, current_point, saved_shift_m);
+                int line = change_line_color_perpendicular(distance_m, saved_shift_m, current_point);
+                double angle = steering_perpendicular(line, dis, dist, current_point[0], current_point[1], Values.earth_radius_m + Values.asl, compass, Values.look_ahead_m, saved_shift_m);
+                adding_new_lines_perpendicular(line, saved_shift_m, saved_line_distance_m);
+                return new Values.value2return() { distance = dist, dir = direction, line = line, angle = angle };
             }
-            double[] val = {0};
-            return val;
-        }
-        private void Timer_Tick(object sender, EventArgs e)//it does not work
-        {
-            if( function == Values.Function.growing)
-            {
-              
 
-
-                double[] diss = Math_Formulas.real_shift_growing(Values.current_point[0], Values.current_point[1], value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-
-                //var w = is_track_decreasing_or_rising();
-                //Debug.WriteLine($"{is_track_decreasing_or_rising()} distance: {diss[2]} {diss[2] * earth_radius_m}");
-                add_pin(diss[0], diss[1], pin_loc, map);
-                // pin_loc3.ToolTip = $"{Math_Formulas.radian_to_degree(diss[0])} {Math_Formulas.radian_to_degree(diss[0])}";
-                //pin_curloc.ToolTip = $"{Math_Formulas.radian_to_degree(Values.current_point[0])} {Math_Formulas.radian_to_degree(Values.current_point[1])}";
-                add_pin(Values.current_point[0], Values.current_point[1], pin_curloc, map);
-
-                last_points(Values.current_point[0], Values.current_point[1]);
-            }
-            
-            //draw_tracking_line(Values.current_point[0], Values.current_point[1], map);
+            return new Values.value2return() { distance = 0, dir = Values.Direction.NULL, line = 0 };
         }
 
-        public void calck(double curr_loc_a, double curr_loc_b, double delta, double alpha, double shift)
+        public void validation(ref double[] _main_points,  in double line_distance_m, in double earth_radius)//main_points, points to calculate math's function
         {
-
-            double c = Math.Acos(Math.Cos(curr_loc_a) * Math.Cos(delta + curr_loc_b));
-            double mojec = c + shift;
-            double mojenowe_a = Math.Asin(Math.Sin(alpha) * Math.Sin(mojec));
-            double mojenowe_b = Math.Atan(Math.Cos(alpha) * Math.Tan(mojec)) - delta;
-            Pushpin pin1 = new Pushpin();
-            Location loc1 = new Location(Math_Formulas.radian_to_degree(mojenowe_a), Math_Formulas.radian_to_degree(mojenowe_b));
-            pin1.Location = loc1;
-
-        }
-        public void validation( double[] cur_points)
-        {
-            Templates.validate_points(ref Values.main_points);
-            // int fun = Templates.validate_template(Values.main_points);
-            //function = (Values.Function)Enum.Parse(typeof(Values.Function), fun.ToString());
-            function = Templates.validate_template(Values.main_points);
-            Debug.WriteLine($"function {function}");
-            last_position_a = cur_points[0];
-            last_position_b = cur_points[1];
+            Templates.validate_points(ref _main_points);
+            function = Templates.validate_template(_main_points);
 
             if (function != Values.Function.NULL)
             {
@@ -173,48 +125,192 @@ namespace navsharp
                 //Debug.WriteLine(function.ToString());
                 if (function == Values.Function.growing)//fun rośnie
                 {
-                    double bx = Math_Formulas.calculate_b(Values.main_points);
-                    value_for_rise_fun.alpha = Math_Formulas.calculate_alpha(Values.main_points[0], bx);
+                    double bx = Math_Formulas.calculate_b(_main_points);
+                    value_for_rise_fun.alpha = Math_Formulas.calculate_alpha(_main_points[0], bx);
                     value_for_rise_fun.beta = Math.Acos(Math.Sin(value_for_rise_fun.alpha) * Math.Cos(bx));
-                    value_for_rise_fun.delta = Templates.template_for_growing(bx, Values.main_points[1]);
-
-                    //Values.angle = value_for_rise_fun.beta;
+                    value_for_rise_fun.delta = Templates.template_for_growing(bx, _main_points[1]);
+                    add_lines_growing(_main_points, line_distance_m, earth_radius, line_adder, saved_shift_m, true);
                 }
                 else if (function == Values.Function.decreasing)//maleje
                 {
-                    double bx = Math_Formulas.calculate_decreasing_b2(Values.main_points);
-                    value_for_decreasing_fun.b_length = bx + Values.main_points[3];
-                    value_for_decreasing_fun.alpha = Math.Atan(Math.Tan(Values.main_points[2]) / Math.Sin(bx));
+                    double bx = Math_Formulas.calculate_decreasing_b2(_main_points);
+                    value_for_decreasing_fun.b_length = bx + _main_points[3];
+                    value_for_decreasing_fun.alpha = Math.Atan(Math.Tan(_main_points[2]) / Math.Sin(bx));
                     value_for_decreasing_fun.beta = Math.Acos(Math.Sin(value_for_decreasing_fun.alpha) * Math.Cos(bx));
+                    add_lines_decreasing(_main_points, line_distance_m, earth_radius, line_adder, saved_shift_m, true);
+
                 }
                 else if (function == Values.Function.vertical)//pionowe
                 {
-                    value_for_vertical_fun.reference_b = Values.main_points[1]; 
+                    value_for_vertical_fun.reference_b = _main_points[1];
+                    add_lines_vertical(_main_points, line_distance_m, earth_radius, line_adder, saved_shift_m, true, saved_shift_m);
+
                 }
                 else if(function == Values.Function.perpendicular)//poziome
                 {
-                    value_for_perpendicular_fun.reference_a = Values.main_points[0];
+                    value_for_perpendicular_fun.reference_a = _main_points[0];
+                    add_lines_perpendicular(_main_points, line_distance_m, earth_radius, line_adder, saved_shift_m, saved_shift_m, true);
+
                 }
             }
 
-
-            //map.Heading = - Math_Formulas.radian_to_degree( value_for_rise_fun.beta);
-            ///Debug.WriteLine($"{main_points[0]} {main_points[1]} {main_points[2]} {main_points[3]}");
-
-            //timer.Start();
-            
-            //map.Children.Add(pin_curloc);
-            //map.Children.Add(pin_loc);
-            //map.Children.Add(pin1);
-            //map.Children.Add(pin2);
-            
-            //map.Children.Add(poly);
-            
-            //draw_main_line();
-            add_lines();
-            //draw_route();
+            //add_lines(_main_points, line_distance_m, earth_radius, n_lines, shift_m, function);
+            saved_main_points = _main_points;
+            saved_line_distance_m = line_distance_m;
             is_validated = true;
         }
+
+        private void adding_new_lines_growing(in int line, in double shift_m, in double line_distance_m)
+        {
+            if (n_line - Math.Abs(line) < 3)
+            {
+                add_lines_growing(saved_main_points, line_distance_m, (Values.earth_radius_m + Values.asl), line_adder, shift_m, false);
+                n_line += line_adder;
+
+            }
+        }
+        private void adding_new_lines_decreasing(in int line, in double shift_m, in double line_distance_m)
+        {
+            if (n_line - Math.Abs(line) < 3)
+            {
+                add_lines_decreasing(saved_main_points, line_distance_m, (Values.earth_radius_m + Values.asl), line_adder, shift_m, false);
+                n_line += line_adder;
+
+            }
+        }
+        private void adding_new_lines_vertical(in int line, in double shift_m, in double line_distance_m)
+        {
+            if (n_line - Math.Abs(line) < 3)
+            {
+                add_lines_vertical(saved_main_points, line_distance_m, (Values.earth_radius_m + Values.asl), line_adder, shift_m, false, line_shift_length_vertical);
+                n_line += line_adder;
+
+            }
+        }
+        private void adding_new_lines_perpendicular(in int line, in double shift_m, in double line_distance_m)
+        {
+            if (n_line - Math.Abs(line) < 3)
+            {
+                add_lines_perpendicular(saved_main_points, line_distance_m, (Values.earth_radius_m + Values.asl), line_adder, shift_m, line_shift_length_perpendicular, false);
+                n_line += line_adder;
+
+            }
+        }
+        private double steering_growing(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] points = calculate_look_ahead_growing(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
+            return Math_Formulas.calculate_steering(points[0], points[1], current_a, current_b, points[2] * distance_to_line, points[3], earth_radius, vehicle_degree, look_ahead, points[4]);
+        }
+
+        private double[] calculate_look_ahead_growing(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double shift_length = num_of_line * Math_Formulas.calculate_radian_using_radius_and_length(shift, earth_radius);
+            double[] target_points = new double[5];
+            double ahead = Math_Formulas.calculate_radian_using_radius_and_length(look_ahead, earth_radius);
+
+            double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+            double degree = (direction == Values.Direction.growing) ? value_for_rise_fun.beta : (value_for_rise_fun.beta + Math.PI);
+
+            double current_c = Math_Formulas.calculate_c_using_a_and_b(current_a, current_b + value_for_rise_fun.delta);
+            double shifted_c = current_c + multiplicator * ahead;
+            double shifted_a = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c, value_for_rise_fun.alpha);
+            double shifted_b = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
+
+            double[] points = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a, shifted_b, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+            Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
+            target_points[0] = points[0];
+            target_points[1] = points[1];
+            target_points[2] = multiplicator;
+            target_points[3] = ahead;
+            target_points[4] = degree;
+            return target_points;
+        }
+
+        private double steering_decreasing(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] points = calculate_look_ahead_decreasing(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
+            return Math_Formulas.calculate_steering(points[0], points[1], current_a, current_b, points[2] * distance_to_line, points[3], earth_radius, vehicle_degree, look_ahead, points[4]);
+        }
+
+        private double[] calculate_look_ahead_decreasing(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double shift_length = num_of_line * Math_Formulas.calculate_radian_using_radius_and_length(shift, earth_radius);
+            double[] target_points = new double[5];
+            double ahead = Math_Formulas.calculate_radian_using_radius_and_length(look_ahead, earth_radius);
+
+            double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+            double degree = (direction == Values.Direction.growing) ? 2 * Math.PI - value_for_decreasing_fun.beta : (Math.PI - value_for_decreasing_fun.beta);
+
+            double current_c = Math_Formulas.calculate_c_using_a_and_b(current_a, value_for_decreasing_fun.b_length - current_b);
+            double shifted_c = current_c + multiplicator * ahead;
+            double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c, value_for_decreasing_fun.alpha);
+            double shifted_b_down = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c, value_for_decreasing_fun.alpha);
+
+            double[] points = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_down, shifted_b_down, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+            Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
+            target_points[0] = points[0];
+            target_points[1] = points[1];
+            target_points[2] = multiplicator;
+            target_points[3] = ahead;
+            target_points[4] = degree;
+
+            return target_points;
+        }
+
+        private double steering_vertical(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] points = calculate_look_ahead_vertical(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
+            return Math_Formulas.calculate_steering(points[0], points[1], current_a, current_b, points[2] * distance_to_line, points[3], earth_radius, vehicle_degree, look_ahead, points[4]);
+        }
+
+        private double[] calculate_look_ahead_vertical(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] target_points = new double[5];
+            double ahead = Math_Formulas.calculate_radian_using_radius_and_length(look_ahead, earth_radius);
+
+            double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+            double degree = (direction == Values.Direction.growing) ? 0 : Math.PI;
+            double top_a = current_a + multiplicator * Math_Formulas.calculate_radian_using_radius_and_length(ahead * earth_radius, earth_radius);
+            //Debug.WriteLine($"line:{num_of_line}");
+            double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, num_of_line * shift, earth_radius);
+            double ret_b = (value_for_vertical_fun.reference_b < current_b) ? b[0] : b[1];
+
+            Location loc = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(ret_b));
+            target_points[0] = top_a;
+            target_points[1] = ret_b;
+            target_points[2] = multiplicator;
+            target_points[3] = ahead;
+            target_points[4] = degree;
+            return target_points;
+        }
+       
+        private double steering_perpendicular(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] points = calculate_look_ahead_perpendicular(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
+            return Math_Formulas.calculate_steering(points[0], points[1], current_a, current_b, points[2] * distance_to_line, points[3], earth_radius, vehicle_degree, look_ahead, points[4]);
+        }
+
+        private double[] calculate_look_ahead_perpendicular(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
+        {
+            double[] target_points = new double[5];
+            double ahead = Math_Formulas.calculate_radian_using_radius_and_length(look_ahead, earth_radius);
+
+            double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
+            double degree = (direction == Values.Direction.growing) ? (Math.PI / 2) : 1.5 * Math.PI;
+
+            double[] points = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, current_b, current_b, ahead * earth_radius, earth_radius);
+            double top_b = current_b + multiplicator * points[2];
+            double[] a_top = Math_Formulas.calculate_shift_for_perpendicular(value_for_perpendicular_fun.reference_a, current_b, value_for_perpendicular_fun.reference_a, num_of_line * shift, earth_radius);
+            Location loc = new Location(Math_Formulas.radian_to_degree(a_top[0]), Math_Formulas.radian_to_degree(top_b));
+            target_points[0] = a_top[0];
+            target_points[1] = top_b;
+            target_points[2] = multiplicator;
+            target_points[3] = ahead;
+            target_points[4] = degree;
+            return target_points;
+        }
+
+
         private void steering(int num_of_line, double distance_to_ref, double distance_to_line, double current_a, double current_b, double earth_radius, double vehicle_degree, double look_ahead, double shift)
         {
             double[] points = calculate_look_ahead(num_of_line, distance_to_ref, distance_to_line, current_a, current_b, earth_radius, vehicle_degree, look_ahead, shift);
@@ -238,7 +334,6 @@ namespace navsharp
 
                 double[] points = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a, shifted_b, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
                 Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
-                pin1.Location = loc;
                 target_points[0] = points[0];
                 target_points[1] = points[1];
                 target_points[2] = multiplicator;
@@ -260,7 +355,6 @@ namespace navsharp
 
                 double[] points = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_down, shifted_b_down, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
                 Location loc = new Location(Math_Formulas.radian_to_degree(points[0]), Math_Formulas.radian_to_degree(points[1]));
-                pin1.Location = loc;
                 target_points[0] = points[0];
                 target_points[1] = points[1];
                 target_points[2] = multiplicator;
@@ -277,12 +371,11 @@ namespace navsharp
                 double multiplicator = (direction == Values.Direction.growing) ? 1 : -1;
                 double degree = (direction == Values.Direction.growing) ? 0 : Math.PI;
                 double top_a = current_a + multiplicator * Math_Formulas.calculate_radian_using_radius_and_length(ahead * earth_radius, earth_radius);
-                Debug.WriteLine($"line:{num_of_line}");
+                //Debug.WriteLine($"line:{num_of_line}");
                 double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, num_of_line * shift, earth_radius);
                 double ret_b = (value_for_vertical_fun.reference_b < current_b) ? b[0] : b[1];
                 
                 Location loc = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(ret_b));
-                pin1.Location = loc;
                 target_points[0] = top_a;
                 target_points[1] = ret_b;
                 target_points[2] = multiplicator;
@@ -298,7 +391,6 @@ namespace navsharp
                 double top_b = current_b + multiplicator * points[2];
                 double[] a_top = Math_Formulas.calculate_shift_for_perpendicular(value_for_perpendicular_fun.reference_a, current_b, value_for_perpendicular_fun.reference_a, num_of_line * shift, earth_radius);
                 Location loc = new Location(Math_Formulas.radian_to_degree(a_top[0]), Math_Formulas.radian_to_degree(top_b));
-                pin1.Location = loc;
                 target_points[0] = a_top[0];
                 target_points[1] = top_b;
                 target_points[2] = multiplicator;
@@ -309,91 +401,95 @@ namespace navsharp
                 return target_points;
         }
 
-        private int change_line_color(double real_shift, double width)//rest of division
+        private int change_line_color_growing(in double real_shift, in double width, double[] points)
+        {
+            /*
+            * 
+            *     -/ 
+            *     / +
+            *    /
+            * 
+            */
+            int line = Math_Formulas.which_line(real_shift, width);
+            double a = Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + points[1]);
+            if (a > points[0])
+            {
+                prepare_line_for_change(line, 2);
+                return line;
+
+            }
+            else
+            {
+                prepare_line_for_change(line, 1);
+                return -line;
+            }
+        }
+        private int change_line_color_decreasing(in double real_shift, in double width, double[] points)
         {
             int line = Math_Formulas.which_line(real_shift, width);
-            if (function == Values.Function.vertical)
-            {/*
+            double a = Math.Atan(Math.Tan(value_for_decreasing_fun.alpha) * Math.Sin(value_for_decreasing_fun.b_length - points[1]));
+
+            if (a > points[0])
+            {
+                prepare_line_for_change(line, 2);
+                return line;
+
+            }
+            else
+            {
+                prepare_line_for_change(line, 1);
+                return -line;
+            }
+        }
+
+        private int change_line_color_vertical(in double real_shift, in double width, double[] points)
+        {
+            /*
               * +
               * ======
               * -
               * 
               */
+            int line = Math_Formulas.which_line(real_shift, width);
 
-                if (value_for_vertical_fun.reference_b < Values.current_point[1])
-                {
-                    prepare_line_for_change(line, 2);
-                    return line;
-                }
-                else
-                {
-                    prepare_line_for_change(line, 1);
-                    return -line;
-                }
-                    
-                    
-            }
-            if (function == Values.Function.perpendicular)
+            if (value_for_vertical_fun.reference_b < points[1])
             {
-                /*
-                 *  - | + 
-                 * 
-                 * 
-                 * 
-                 */
-                if (value_for_perpendicular_fun.reference_a < Values.current_point[0])
-                {
-                    prepare_line_for_change(line, 2);
-                    return line;
-
-                }
-                else
-                {
-                    prepare_line_for_change(line, 1);
-                    return -line;
-                }
+                prepare_line_for_change(line, 2);
+                return line;
             }
-            if (function == Values.Function.growing)
+            else
             {
-                /*
-                 * 
-                 *     -/ 
-                 *     / +
-                 *    /
-                 * 
-                 */
-                double a = Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + Values.current_point[1]);
-                if (a > Values.current_point[0])
-                {
-                    prepare_line_for_change(line, 2);
-                    return line;
-
-                }
-                else
-                {
-                    prepare_line_for_change(line, 1);
-                    return -line;
-                }
+                prepare_line_for_change(line, 1);
+                return -line;
             }
-            if (function == Values.Function.decreasing)
-            {
-                double a = Math.Atan(Math.Tan(value_for_decreasing_fun.alpha) * Math.Sin(value_for_decreasing_fun.b_length - Values.current_point[1]));
-               
-                if (a > Values.current_point[0])
-                {
-                    prepare_line_for_change(line, 2);
-                    return line;
-
-                }
-                else
-                {
-                    prepare_line_for_change(line, 1);
-                    return -line;
-                }
-            }
-            return 0;
         }
-        private void prepare_line_for_change(int line, int factor)
+
+        private int change_line_color_perpendicular(in double real_shift, in double width, double[] points)
+        {
+            /*
+             *  - | + 
+             * 
+             * 
+             * 
+             */
+            int line = Math_Formulas.which_line(real_shift, width);
+
+            if (value_for_perpendicular_fun.reference_a < points[0])
+            {
+                prepare_line_for_change(line, 2);
+                return line;
+
+            }
+            else
+            {
+                prepare_line_for_change(line, 1);
+                return -line;
+            }
+        }
+
+
+       
+        private void prepare_line_for_change(in int line, in int factor)
         {
             //Debug.WriteLine($"mappolyline.Count {mappolyline.Count} {line}");
             if(line <= mappolyline.Count / 2)
@@ -452,274 +548,161 @@ namespace navsharp
                 }
             }
         }
-        private void draw_main_line()////trzeba zrobić dla rosnącej  ale i tak jest nie używane
+
+        private double preapre_distance_growing(in double real_distance, in double[] points, in double shift_m)
         {
-            if(function == Values.Function.perpendicular)
+            double dist = Math_Formulas.distance_to_line(real_distance, shift_m);
+            double a = Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + points[1]);
+            if (points[0] > a)
             {
-                double[] b_1 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[1], Values.main_points[1], Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double[] b_3 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[3], Values.main_points[3], Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double top_b = Values.main_points[3] + b_3[2];
-                double down_b = Values.main_points[1] - b_1[2];
-                main_line = new Lines(value_for_perpendicular_fun.reference_a, down_b, value_for_perpendicular_fun.reference_a, top_b, map, "Blue");
-                main_line.draw_line();
-
+                return (-1) * dist;
             }
-            else if(function == Values.Function.decreasing)
-            {
-                double current_c_down = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[2], value_for_decreasing_fun.b_length - Values.main_points[3]);
-                double current_c_top = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[0], value_for_decreasing_fun.b_length - Values.main_points[1]);
-                double shifted_c_down = current_c_down - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_c_top = current_c_top + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
-                double shifted_b_down = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
-                double shifted_a_top = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
-                double shifted_b_top = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
-
-                main_line = new Lines(shifted_a_down, shifted_b_down, shifted_a_top, shifted_b_top, map, "Blue");
-
-            }
-            else
-            {
-                main_line = new Lines(Values.main_points[0], Values.main_points[1], Values.main_points[2], Values.main_points[3], map, "Blue");
-                main_line.draw_line();
-
-            }
-
-        } 
-        public string is_track_decreasing_or_rising(double current_c_length, double last_c_length)
-        {
-            if (function == Values.Function.growing)
-            {
-
-            if (last_c_length < current_c_length) { 
-                //Debug.WriteLine("growing");
-                return "growing";
-            }
-            else if (last_c_length > current_c_length)
-            {
-                //Debug.WriteLine("decreasing");
-                return "decreasing";
-            }
-            else
-            {
-                //Debug.WriteLine("the same");
-                return "the same";
-            }
+            return dist;
         }
-        return "null";
-            
+        private double preapre_distance_decreasing(in double real_distance, in double[] points, in double shift_m)
+        {
+            double dist = Math_Formulas.distance_to_line(real_distance, shift_m);
+            double a = Math.Atan(Math.Tan(value_for_decreasing_fun.alpha) * Math.Sin(value_for_decreasing_fun.b_length - points[1]));
+
+            if (points[0] < a)
+            {
+                return (-1) * dist;
+            }
+            return dist;
         }
-        private double preapre_distance(double real_distance)
+
+        private double preapre_distance_vertical(in double real_distance, in double[] points, in double shift_m)
         {
-
-            if (function == Values.Function.growing)
+            double dist = Math_Formulas.distance_to_line(real_distance, shift_m);
+            if (points[1] < value_for_vertical_fun.reference_b)
             {
-                double dist = Math_Formulas.distance_to_line(real_distance, Values.shif_m);
-                double a = Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + Values.current_point[1]);
-                if (Values.current_point[0] > a)
-                {
-                    return (-1) * dist;
-                }
-                return dist;
+                return (-1) * dist;
             }
-            else if (function == Values.Function.decreasing)
-            {
-                double dist = Math_Formulas.distance_to_line(real_distance, Values.shif_m);
-                double a = Math.Atan(Math.Tan(value_for_decreasing_fun.alpha) * Math.Sin(value_for_decreasing_fun.b_length - Values.current_point[1]));
+            return dist;
+        }
 
-                if (Values.current_point[0] < a)
-                {
-                    return (-1) * dist;
-                }
-                return dist;
-            }
-            else if (function == Values.Function.vertical)
-            {
-
-                double dist = Math_Formulas.distance_to_line(real_distance, Values.shif_m);
-                if (Values.current_point[1] < value_for_vertical_fun.reference_b)
-                {
-                    return (-1) * dist;
-                }
-                return dist;
-            }
-            else if (function == Values.Function.perpendicular)
-            {
-                /* -
-                 *------------------------------
-                 *+
-                 */
-                double dist = Math_Formulas.distance_to_line(real_distance, Values.shif_m);
-                if (Values.current_point[0] > value_for_perpendicular_fun.reference_a)
-                {
-                    return (-1) * dist;
-                }
-                return dist;
-            }
-
-
-                return 0;
-        } 
-        private void add_lines()
+        private double preapre_distance_perpendicular(in double real_distance, in double[] points, in double shift_m)
         {
-            if (function == Values.Function.growing)
+            double dist = Math_Formulas.distance_to_line(real_distance, shift_m);
+            if (points[0] > value_for_perpendicular_fun.reference_a)
             {
-                double shift_length = 0;
-                double current_c_down = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[0], Values.main_points[1] + value_for_rise_fun.delta);
-                double current_c_top = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[2], Values.main_points[3] + value_for_rise_fun.delta);
-                double shifted_c_down = current_c_down - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_c_top = current_c_top + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_down, value_for_rise_fun.alpha);
-                double shifted_b_down = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_down, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
-                double shifted_a_top = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_top, value_for_rise_fun.alpha);
-                double shifted_b_top = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_top, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
+                return (-1) * dist;
+            }
+            return dist;
+        }
+
+        private void add_lines_growing(in double[] main_points, in double line_distance_m, in double radius, in int n_lines, in double shift_m, bool draw_main_line)
+        {
+            double current_c_down = Math_Formulas.calculate_c_using_a_and_b(main_points[0], main_points[1] + value_for_rise_fun.delta);
+            double current_c_top = Math_Formulas.calculate_c_using_a_and_b(main_points[2], main_points[3] + value_for_rise_fun.delta);
+            double shifted_c_down = current_c_down - Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            double shifted_c_top = current_c_top + Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_down, value_for_rise_fun.alpha);
+            double shifted_b_down = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_down, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
+            double shifted_a_top = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_top, value_for_rise_fun.alpha);
+            double shifted_b_top = Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_top, value_for_rise_fun.alpha) - value_for_rise_fun.delta;
+            if (draw_main_line)
+            {
                 main_line = new Lines(shifted_a_down, shifted_b_down, shifted_a_top, shifted_b_top, map, "Blue");
                 main_line.draw_line();
-                for (int index = 0; index < Values.how_many_lines; index++)
-                {
-                    shift_length += Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
-
-                    double[] down_growing_val = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a_down, shifted_b_down, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    double[] top_growing_val = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a_top, shifted_b_top, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    mappolyline.Add(new Lines(top_growing_val[0], top_growing_val[1], down_growing_val[0], down_growing_val[1], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-
-                    double[] top_decreasing_val = Math_Formulas.calculate_shift_for_growing_fun_up(shifted_a_down, shifted_b_down, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    double[] down_decreasing_val = Math_Formulas.calculate_shift_for_growing_fun_up(shifted_a_top, shifted_b_top, shift_length, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
-                    mappolyline.Add(new Lines(top_decreasing_val[0], top_decreasing_val[1], down_decreasing_val[0], down_decreasing_val[1], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-                }
             }
-
-            else if (function == Values.Function.decreasing)
+            for (int index = 0; index < n_lines; index++)
             {
-                double shift_length = 0;
-                double current_c_down = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[2], value_for_decreasing_fun.b_length - Values.main_points[3]);
-                double current_c_top = Math_Formulas.calculate_c_using_a_and_b(Values.main_points[0], value_for_decreasing_fun.b_length - Values.main_points[1]);
-                double shifted_c_down = current_c_down - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_c_top = current_c_top + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
-                double shifted_b_down = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
-                double shifted_a_top = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
-                double shifted_b_top = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
+                line_shift_length_growing += Math_Formulas.calculate_radian_using_radius_and_length(shift_m, radius);
+
+                double[] down_growing_val = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a_down, shifted_b_down, line_shift_length_growing, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                double[] top_growing_val = Math_Formulas.calculate_shift_for_growing_fun_down(shifted_a_top, shifted_b_top, line_shift_length_growing, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                mappolyline.Add(new Lines(top_growing_val[0], top_growing_val[1], down_growing_val[0], down_growing_val[1], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+
+                double[] top_decreasing_val = Math_Formulas.calculate_shift_for_growing_fun_up(shifted_a_down, shifted_b_down, line_shift_length_growing, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                double[] down_decreasing_val = Math_Formulas.calculate_shift_for_growing_fun_up(shifted_a_top, shifted_b_top, line_shift_length_growing, value_for_rise_fun.alpha, value_for_rise_fun.beta, value_for_rise_fun.delta);
+                mappolyline.Add(new Lines(top_decreasing_val[0], top_decreasing_val[1], down_decreasing_val[0], down_decreasing_val[1], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+            }
+        }
+        private void add_lines_decreasing(in double[] main_points, in double line_distance_m, in double radius, in double n_lines, in double shift_m, bool draw_main_line)
+        {
+            double current_c_down = Math_Formulas.calculate_c_using_a_and_b(main_points[2], value_for_decreasing_fun.b_length - main_points[3]);
+            double current_c_top = Math_Formulas.calculate_c_using_a_and_b(main_points[0], value_for_decreasing_fun.b_length - main_points[1]);
+            double shifted_c_down = current_c_down - Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            double shifted_c_top = current_c_top + Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            double shifted_a_down = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
+            double shifted_b_down = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_down, value_for_decreasing_fun.alpha);
+            double shifted_a_top = Math_Formulas.calculate_a_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
+            double shifted_b_top = value_for_decreasing_fun.b_length - Math_Formulas.calculate_b_using_c_and_alpha(shifted_c_top, value_for_decreasing_fun.alpha);
+            if (draw_main_line)
+            {
                 main_line = new Lines(shifted_a_down, shifted_b_down, shifted_a_top, shifted_b_top, map, "Blue");
                 main_line.draw_line();
-                for (int index = 0; index < Values.how_many_lines; index++)
-                {
-                    shift_length += Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
-
-                    double[] up_growing_val = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_down, shifted_b_down, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    double[] down_growing_val = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_top, shifted_b_top, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    mappolyline.Add(new Lines(down_growing_val[0], down_growing_val[1], up_growing_val[0], up_growing_val[1], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-
-                    double[] top_decreasing_val = Math_Formulas.calculate_shift_for_decreasing_fun_up(shifted_a_down, shifted_b_down, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    double[] down_decreasing_val = Math_Formulas.calculate_shift_for_decreasing_fun_up(shifted_a_top, shifted_b_top, shift_length, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
-                    mappolyline.Add(new Lines(top_decreasing_val[0], top_decreasing_val[1], down_decreasing_val[0], down_decreasing_val[1], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-
-                }
             }
-            else if (function == Values.Function.vertical)
+            for (int index = 0; index < n_lines; index++)
             {
-                double shift_length = 0;
-                double shift_right = Values.shif_m;
-                double shift_left = -Values.shif_m;
-                double top_a = Values.main_points[2] + Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double down_a = Values.main_points[0] - Math_Formulas.calculate_radian_using_radius_and_length(Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                main_line = new Lines(top_a, Values.main_points[1], down_a, Values.main_points[3], map, "Blue");
-                main_line.draw_line();
-                for (int index = 0; index < Values.how_many_lines; index++)
-                {
-                    shift_length += Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
+                line_shift_length_decreasing += Math_Formulas.calculate_radian_using_radius_and_length(shift_m, radius);
 
-                    double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, shift_right, Values.earth_radius_m + Values.asl);
-      
-                    shift_right += Values.shif_m;
-                    shift_left -= Values.shif_m;
-                    /*
-                    Pushpin pin1 = new Pushpin();
-                    Pushpin pin2 = new Pushpin();
-                    Location loc1 = new Location(Math_Formulas.radian_to_degree(top_a), Math_Formulas.radian_to_degree(b[0]));
-                    Location loc2 = new Location(Math_Formulas.radian_to_degree(main_points[2]), Math_Formulas.radian_to_degree(b[0]));
-                    pin1.Location = loc1;
-                    map.Children.Add(pin1);
-                    pin2.Location = loc2;
-                    map.Children.Add(pin2);
-                    */
-                    mappolyline.Add(new Lines(top_a, b[0], down_a, b[0], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-                    mappolyline.Add(new Lines(top_a, b[1], down_a, b[1], map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-                }
+                double[] up_growing_val = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_down, shifted_b_down, line_shift_length_decreasing, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                double[] down_growing_val = Math_Formulas.calculate_shift_for_decreasing_fun_down(shifted_a_top, shifted_b_top, line_shift_length_decreasing, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                mappolyline.Add(new Lines(down_growing_val[0], down_growing_val[1], up_growing_val[0], up_growing_val[1], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+
+                double[] top_decreasing_val = Math_Formulas.calculate_shift_for_decreasing_fun_up(shifted_a_down, shifted_b_down, line_shift_length_decreasing, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                double[] down_decreasing_val = Math_Formulas.calculate_shift_for_decreasing_fun_up(shifted_a_top, shifted_b_top, line_shift_length_decreasing, value_for_decreasing_fun.alpha, value_for_decreasing_fun.beta, value_for_decreasing_fun.b_length);
+                mappolyline.Add(new Lines(top_decreasing_val[0], top_decreasing_val[1], down_decreasing_val[0], down_decreasing_val[1], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+
             }
-            else if (function == Values.Function.perpendicular)
-            {
-                double shift_length = 0;
-                double _shift_top = Values.shif_m;
-                double _shift_down = -Values.shif_m;
-                double[] b_1 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[1], Values.main_points[1], Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                double[] b_3 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, Values.main_points[3], Values.main_points[3], Values.line_distance_m, Values.earth_radius_m + Values.asl);
-                
-                main_line = new Lines(Values.main_points[0], Values.main_points[1] - b_1[2], Values.main_points[2], Values.main_points[3] + b_3[2], map, "Blue");
-                main_line.draw_line();
-                for (int index = 0; index < Values.how_many_lines; index++)
-                {
-                    
-                    shift_length += Math_Formulas.calculate_radian_using_radius_and_length(Values.shif_m, Values.earth_radius_m + Values.asl);
-                    double top_b = Values.main_points[3] + b_3[2];
-                    double down_b = Values.main_points[1] - b_1[2];
-                    double[] a_top = Math_Formulas.calculate_shift_for_perpendicular(Values.main_points[0],Values. main_points[1], value_for_perpendicular_fun.reference_a, _shift_top, Values.earth_radius_m + Values.asl);
-                    double[] a_down = Math_Formulas.calculate_shift_for_perpendicular(Values.main_points[0], Values.main_points[1], value_for_perpendicular_fun.reference_a, _shift_down, Values.earth_radius_m + Values.asl);
-
-                    _shift_top += Values.shif_m;
-                    _shift_down -= Values.shif_m;
-                    /*
-                    Pushpin pin1 = new Pushpin();
-                    Pushpin pin2 = new Pushpin();
-                    Location loc1 = new Location(Math_Formulas.radian_to_degree(a_top[0]), Math_Formulas.radian_to_degree(top_b));
-                    Location loc2 = new Location(Math_Formulas.radian_to_degree(a_down[0]), Math_Formulas.radian_to_degree(down_b));
-                    pin1.Location = loc1;
-                    map.Children.Add(pin1);
-                    pin2.Location = loc2;
-                    map.Children.Add(pin2);
-                   */
-                    mappolyline.Add(new Lines(a_top[0], top_b, a_top[0], down_b, map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-                    mappolyline.Add(new Lines(a_down[0], top_b, a_down[0], down_b, map, "Red"));
-                    mappolyline[mappolyline.Count - 1].draw_line();
-                }
-            }
-
-
         }
-        protected double predictable_a_postions(double b_value)
+        private void add_lines_vertical(in double[] main_points, in double line_distance_m, in double radius, in int n_lines, in double shift_m, in bool draw_main_line, double start_shift)
         {
-            return Math_Formulas.calculate_a(value_for_rise_fun.alpha, value_for_rise_fun.delta + b_value);
+            double top_a = main_points[2] + Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            double down_a = main_points[0] - Math_Formulas.calculate_radian_using_radius_and_length(line_distance_m, radius);
+            if (draw_main_line)
+            {
+                main_line = new Lines(top_a, main_points[1], down_a, main_points[3], map, "Blue");
+                main_line.draw_line();
+            }
+            for (int index = 0; index < n_lines; index++)
+            {
+                double[] b = Math_Formulas.calculate_shift_for_vertical(top_a, value_for_vertical_fun.reference_b, value_for_vertical_fun.reference_b, start_shift, radius);
+
+                start_shift += shift_m;
+                mappolyline.Add(new Lines(top_a, b[0], down_a, b[0], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+                mappolyline.Add(new Lines(top_a, b[1], down_a, b[1], map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+            }
+            line_shift_length_vertical = Math.Abs( start_shift);
         }
+        private void add_lines_perpendicular(in double[] main_points, in double line_distance_m, in double radius, in double n_lines, in double shift_m, in double start_shift_m,in bool draw_main_line)
+        {
+            double _shift_top = start_shift_m;
+            double _shift_down = -start_shift_m;
+            double[] b_1 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, main_points[1], main_points[1], line_distance_m, radius);
+            double[] b_3 = Math_Formulas.calculate_shift_for_vertical(value_for_perpendicular_fun.reference_a, main_points[3], main_points[3], line_distance_m, radius);
+            if (draw_main_line)
+            {
+                main_line = new Lines(main_points[0], main_points[1] - b_1[2], main_points[2], main_points[3] + b_3[2], map, "Blue");
+                main_line.draw_line();
+            }
+            for (int index = 0; index < n_lines; index++)
+            {
+                double top_b = main_points[3] + b_3[2];
+                double down_b = main_points[1] - b_1[2];
+                double[] a_top = Math_Formulas.calculate_shift_for_perpendicular(main_points[0], main_points[1], value_for_perpendicular_fun.reference_a, _shift_top, radius);
+                double[] a_down = Math_Formulas.calculate_shift_for_perpendicular(main_points[0], main_points[1], value_for_perpendicular_fun.reference_a, _shift_down, radius);
+
+                _shift_top += shift_m;
+                _shift_down -= shift_m;
+
+                mappolyline.Add(new Lines(a_top[0], top_b, a_top[0], down_b, map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+                mappolyline.Add(new Lines(a_down[0], top_b, a_down[0], down_b, map, "Red"));
+                mappolyline[mappolyline.Count - 1].draw_line();
+            }
+            line_shift_length_perpendicular = Math.Abs(_shift_top);
+        }
+
         
-        protected double predictable_b_postions(double a)
-        {
-            return Math_Formulas.calculate_b_using_a_and_alpha(a, value_for_rise_fun.alpha);
-        }
-        public void last_points(double longitiude, double latitiude)//a, b
-        {
-            last_position_a = longitiude;
-            last_position_b = latitiude;
-            if ((last_position_b != latitiude) || (last_position_a != longitiude))
-            {
-                //last_position_a = longitiude;
-                //last_position_b = latitiude;
-
-                ///Debug.WriteLine($"{latitiude } {last_position_b} {last_position_b - latitiude}");
-                //Debug.WriteLine("It does not the same");              
-            }
-            else
-            {
-                //Debug.WriteLine("the same1");
-
-            }
-        }
         public void add_pin(double a, double b, Pushpin pin, Map maps)
         {
             a = Math_Formulas.radian_to_degree(a);
@@ -729,17 +712,6 @@ namespace navsharp
            // maps.Children.Add(pin);
 
 
-        }
-            public void add_pins(double a, double b, Map map)
-        {
-
-            a = Math_Formulas.radian_to_degree(a);
-            b = Math_Formulas.radian_to_degree(b);
-            //Map.Children.Remove(pin);
-            Location loc = new Location(a, b);
-            ppoints.Add(new Pushpin());
-            ppoints[ppoints.Count-1].Location = loc;
-            map.Children.Add(ppoints[ppoints.Count - 1]);
         }
        
     }

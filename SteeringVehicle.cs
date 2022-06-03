@@ -9,7 +9,6 @@ namespace navsharp
     class SteeringVehicle
     {
         private bool start = false;
-        private double look_ahead_m = 0;
 
         public SteeringVehicle()
         {

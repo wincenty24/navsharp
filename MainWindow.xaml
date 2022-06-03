@@ -10,46 +10,8 @@
         WindowState="Maximized"
         Loaded="Window_Loaded"
         Title="MainWindow" Height="838" Width="1550">
-    <Window.Resources>
-        <Storyboard x:Key="expand_map">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="main_map">
-                <EasingDoubleKeyFrame KeyTime="0" Value="1330"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="1472"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-        <Storyboard x:Key="close_map">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="main_map">
-                <EasingDoubleKeyFrame KeyTime="0" Value="1472"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="1330"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
 
-        <Storyboard x:Key="close_menu">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="menu_grid">
-                <EasingDoubleKeyFrame KeyTime="0" Value="58"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="200"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-        <Storyboard x:Key="expand_menu">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="menu_grid">
-                <EasingDoubleKeyFrame KeyTime="0" Value="200"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="58"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-    </Window.Resources>
-    <Window.Triggers>
-        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="expand_menu_button">
-            <BeginStoryboard Storyboard="{StaticResource close_map}"/>
-            <BeginStoryboard Storyboard="{StaticResource close_menu}"/>
-        </EventTrigger>
-        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="close_menu_button">
-            <BeginStoryboard Storyboard="{StaticResource expand_menu}"/>
-            <BeginStoryboard Storyboard="{StaticResource expand_map}"/>
-        </EventTrigger>
-    </Window.Triggers>
     <Grid >
-
-
         <TabControl SelectionChanged="TabControl_SelectionChanged" Grid.ColumnSpan="2">
             <TabItem Header="Map">
                 <Grid >
@@ -65,29 +27,7 @@
                     </Grid.Background>
                     <Grid x:Name="menu_grid" HorizontalAlignment="Left" Width="200" Grid.ColumnSpan="2">
                         <Grid Margin="0,0,0,731">
-                            <DockPanel >
-                                <Button Visibility="Hidden" x:Name="expand_menu_button" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="expand_menu_button_Click" Height="50" Width="62">
-                                    <Button.Background>
-                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                            <GradientStop Color="Black" Offset="0"/>
-                                            <GradientStop Color="#FF303757" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Button.Background>
-                                    <materialDesign:PackIcon Kind="OpenInApp" />
 
-                                </Button>
-                                <Button Visibility="Hidden" x:Name="close_menu_button"  Click="close_menu_button_Click" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="53" Height="35">
-                                    <Button.Background>
-                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                            <GradientStop Color="Black" Offset="0"/>
-                                            <GradientStop Color="#FF303757" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Button.Background>
-                                    <materialDesign:PackIcon Kind="Close" />
-
-                                </Button>
-
-                            </DockPanel>
                         </Grid>
                         <Grid Margin="0,40,0,0"  DockPanel.Dock="Top" ShowGridLines="True">
                             <Grid.ColumnDefinitions>
@@ -113,7 +53,6 @@
                                 <Button Grid.Column="1" x:Name="read_fie_button" Height="30" Width="80" Click="read_fie_button_Click">
                                     <materialDesign:PackIcon Kind="OpenInNew"/>
                                 </Button>
-
                             </Grid>
                             <Button Grid.Column="0" Grid.Row="1" x:Name="a_point_button" Click="a_point_button_Click" IsEnabled="False" Content="A" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
                             <Button Grid.Column="0" Grid.Row="2" x:Name="b_point_button" Click="b_point_button_Click" IsEnabled="False" Content="B" Height="30" Width=" 80" d:LayoutOverrides="Height"/>
@@ -129,7 +68,6 @@
                             <Button x:Name="save_file_button" Click="save_file_button_Click" Grid.Column="0" Grid.Row="6" Height="30" Width="80">
                                 <materialDesign:PackIcon Kind="ContentSave" />
                             </Button>
-
                             <Grid  Grid.Row="7">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
@@ -176,15 +114,9 @@
                                 <ToggleButton x:Name="centerize_togglebutton" IsChecked="True" ToggleButton.Unchecked="centerize_togglebutton_Unchecked" ToggleButton.Checked="centerize_togglebutton_Checked" Grid.Column="1" Grid.Row="1" Height="41" Width="67">
 
                                 </ToggleButton>
-
                             </Grid>
-
-
-
                         </Grid>
-
                     </Grid>
-
                     <m:Map x:Name="main_map"  Mode="AerialWithLabels" MouseLeftButtonDown="main_map_MouseLeftButtonDown" MouseDoubleClick="MapWithPushpins_MouseDoubleClick" CredentialsProvider="Ap6DtpVj_CBlShpuanmdyUTYualgwsRArHBG2zoDMvISbqo-i9VYr-fQ7q1DfTEP" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="725" Width="1330" Grid.Column="1"/>
                     <Button Content="angle +" Visibility="Hidden" x:Name="angle_plus" Width="75" Height="34" Margin="1396,10,10,737" Click="angle_plus_Click" Grid.Column="1"/>
                     <TextBlock x:Name="arrow_left" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="610,0,821,0" Grid.Column="1"><InlineUIContainer>
@@ -194,6 +126,7 @@
                     <TextBlock x:Name="arrow_right" VerticalAlignment="Top" Height="50" Width="50" TextWrapping="Wrap" Margin="755,0,676,0" Grid.Column="1"><InlineUIContainer>
                         <materialDesign:PackIcon Kind="ArrowLeftBoldCircle" Height="43" Width="50"/>
                         </InlineUIContainer></TextBlock>
+                    <TextBlock x:Name="nr_of_line_Textblock" Grid.Column="1" HorizontalAlignment="Left" Margin="1160.2,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="24" Width="60"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Settings">
